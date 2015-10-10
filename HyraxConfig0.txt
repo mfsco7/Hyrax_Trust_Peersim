@@ -1,0 +1,33 @@
+random.seed 1234567890
+simulation.cycles 0
+
+#control.shf Shuffle
+
+network.size 5
+
+protocol.atrib NodeAttributes
+
+protocol.lnk IdleProtocol
+
+
+protocol.simulation Hyrax.HyraxSimulation
+protocol.simulation.linkable lnk
+protocol.simulation.atributes atrib
+
+control.observer Hyrax.Observer
+
+init.0 Hyrax.Initializer
+init.0.protocol atrib
+init.0.kindness 1 = 100% ,1 = 80%,1 = 60%,1 = 40%,1 = 20%
+init.0.numberOfOverstaters 0
+init.0.maxOverstates 7
+init.0.victims 0
+init.0.randomRaters 0
+init.0.maxReports 1
+init.0.infrastructureBufferSize 0
+init.0.node1RepMatrix 3-1;5-2;2-7;18-3
+
+
+init.1 WireKOut
+init.1.protocol lnk
+init.1.k 4
