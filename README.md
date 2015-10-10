@@ -1,4 +1,4 @@
-# Hyrax_Trust_Peersim
+# Hyrax Trust Peersim
 
 This project uses the following external libraries:
 - peersim 1.0.5 (http://sourceforge.net/projects/peersim/)
