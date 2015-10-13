@@ -10,21 +10,32 @@ public class NodeAttributes implements Protocol {
     /*****************************
      * FIELDS           *
      *****************************/
-    private int kindness; // integer ranging from 0 to 100 which determines the probability this node will satisfy a neighbour's request for an interaction
+    private int kindness; // integer ranging from 0 to 100 which determines
+    // the probability this node will satisfy a neighbour's request for an
+    // interaction
 
-    private boolean evilOverstater; //these kind of evil nodes will overfill their reputationMatrixes with unfair ratings larger than the actual number of interactions for specific victim nodes
+    private boolean evilOverstater; //these kind of evil nodes will overfill
+    // their reputationMatrixes with unfair ratings larger than the actual
+    // number of interactions for specific victim nodes
 
-    private int maxOverstates; //represents the highest number of ratings that an evil node may add to his reputation per cycle
+    private int maxOverstates; //represents the highest number of ratings
+    // that an evil node may add to his reputation per cycle
 
     /**
      * is this node being a target of unfair reputations given by Evil nodes?
      */
-    private boolean isVictim; //is this node being a target of unfair reputations given by Evil nodes?
+    private boolean isVictim; //is this node being a target of unfair
+    // reputations given by Evil nodes?
 
-    private boolean isRandomRater; //another type of malicious node. this one will just add a random rating to a random node per cycle without caring about the result of the interaction
-    private int randomChance; // if this node is a randomRater, he has a randomChance of adding a positive rating. Else it will add a negative rating.
+    private boolean isRandomRater; //another type of malicious node. this one
+    // will just add a random rating to a random node per cycle without
+    // caring about the result of the interaction
+    private int randomChance; // if this node is a randomRater, he has a
+    // randomChance of adding a positive rating. Else it will add a negative
+    // rating.
 
-    private ReputationMatrix repMatrix; //the node's ReputationMatrix is where he'll store ratings for the other nodes.
+    private ReputationMatrix repMatrix; //the node's ReputationMatrix is
+    // where he'll store ratings for the other nodes.
 
 
     /*****************************

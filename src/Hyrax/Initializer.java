@@ -55,15 +55,24 @@ public class Initializer implements Control {
 
     public Initializer(String prefix) {
         attpid = Configuration.getPid(prefix + "." + PAR_PROT);
-        kindness = Configuration.getString(prefix + "." + PAR_KIND, null); //defaults to null (everyone has random kindness)
-        nEvils = Configuration.getInt(prefix + "." + PAR_OVERSTATERS, 0); //defaults to 0 (no one is overstating)
-        higherEvilValue = Configuration.getInt(prefix + "." + PAR_MAX_OVERSTATES, 5); //defaults to 5
-        nVictims = Configuration.getInt(prefix + "." + PAR_VICTIM, 0); //defaults to 0 (no victims for overstater nodes)
-        nRandoms = Configuration.getInt(prefix + "." + PAR_RANDOMS, 0); //defaults to 0
-        bufferSize = Configuration.getInt(prefix + "." + PAR_BUFFERSIZE, Network.size()); //defaults to the size of the network
+        kindness = Configuration.getString(prefix + "." + PAR_KIND, null);
+        //defaults to null (everyone has random kindness)
+        nEvils = Configuration.getInt(prefix + "." + PAR_OVERSTATERS, 0);
+        //defaults to 0 (no one is overstating)
+        higherEvilValue = Configuration.getInt(prefix + "." +
+                PAR_MAX_OVERSTATES, 5); //defaults to 5
+        nVictims = Configuration.getInt(prefix + "." + PAR_VICTIM, 0);
+        //defaults to 0 (no victims for overstater nodes)
+        nRandoms = Configuration.getInt(prefix + "." + PAR_RANDOMS, 0);
+        //defaults to 0
+        bufferSize = Configuration.getInt(prefix + "." + PAR_BUFFERSIZE,
+                Network.size()); //defaults to the size of the network
         maxCycles = Configuration.getInt(CDSimulator.PAR_CYCLES);
-        maxReports = Configuration.getInt(prefix + "." + PAR_REPORTS, 4); //the number of times that the nodes report their matrixes to the infrastructure per simulation. Defaults to 4.
-        node1RepMatrix = Configuration.getString(prefix + "." + PAR_NODE1REPTMATRIX, null);
+        maxReports = Configuration.getInt(prefix + "." + PAR_REPORTS, 4);
+        //the number of times that the nodes report their matrixes to the
+        // infrastructure per simulation. Defaults to 4.
+        node1RepMatrix = Configuration.getString(prefix + "." +
+                PAR_NODE1REPTMATRIX, null);
     }
 
 
@@ -80,14 +89,19 @@ public class Initializer implements Control {
         Infrastructure.init(bufferSize, attpid, parseRepMatrix(node1RepMatrix));
         Observer.init(maxReports, maxCycles, attpid);
 
-        ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /* Lists that will contain values to be attributed        */
-        ArrayList<Boolean> nodeOverstaters = new ArrayList<Boolean>();    /*  to the nodes. The lists will be shuffled and the      */
-        ArrayList<Boolean> nodeRandomRaters = new ArrayList<Boolean>();    /*  values will be assigned randomly to every node.       */
+        ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /*
+        Lists that will contain values to be attributed        */
+        ArrayList<Boolean> nodeOverstaters = new ArrayList<Boolean>();    /*
+         to the nodes. The lists will be shuffled and the      */
+        ArrayList<Boolean> nodeRandomRaters = new ArrayList<Boolean>();    /*
+          values will be assigned randomly to every node.       */
         ArrayList<Boolean> nodeVictims = new ArrayList<Boolean>();
 
-        // first we'll define the kindness of the nodes according to the parameters provided.
+        // first we'll define the kindness of the nodes according to the
+        // parameters provided.
         if (kindness == null) {
-            //no kindness parameter was provided which means all nodes have random kindness.
+            //no kindness parameter was provided which means all nodes have
+            // random kindness.
             for (int i = 0; i < Network.size(); i++) {
                 nodeKindness.add(rand.nextInt(101));
             }
@@ -177,8 +191,10 @@ public class Initializer implements Control {
             System.out.println("isVictim = " + atribs.isVictim());
             System.out.println("isRandomRater = " + atribs.isRandomRater());
             System.out.println("randomChance = " + atribs.getRandomChance());
-            System.out.println("Reputation =" + Infrastructure.askForReputation(i));
-            System.out.println("««««««««««««««««««««««««««««««««««««««««««««««««««");
+            System.out.println("Reputation =" + Infrastructure
+                    .askForReputation(i));
+            System.out.println
+                    ("««««««««««««««««««««««««««««««««««««««««««««««««««");
         }
 
 

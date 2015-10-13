@@ -5,10 +5,14 @@ import java.util.HashMap;
 
 public class ReputationMatrix {
     /*
-    * Each node has a reputationMatrix to store ratings. For example, if nodeA interacts with nodeB, and nodeB satisfies the 'request',
-	*then nodeA will add a positive rating (an alpha) to nodeB in nodeA's reputationMatrix. Else it will be a negative rating (a beta).
+    * Each node has a reputationMatrix to store ratings. For example, if
+    * nodeA interacts with nodeB, and nodeB satisfies the 'request',
+	*then nodeA will add a positive rating (an alpha) to nodeB in nodeA's
+	* reputationMatrix. Else it will be a negative rating (a beta).
 	*
-	* the key-value pair of the HashMap represent the ID of the node that was rated and the respective alpha and beta (in the form of a list [alpha,beta])
+	* the key-value pair of the HashMap represent the ID of the node that was
+	* rated and the respective alpha and beta (in the form of a list [alpha,
+	* beta])
 	* alpha = n of successes  ,  beta = n of failures
 	* 
 	* Here is an example of a ReputationMatrix for node3:
@@ -23,9 +27,11 @@ public class ReputationMatrix {
 	*|    4     |   [11, 6]    |
 	*---------------------------
 	*
-	*What this matrix tell us is that, up until now, node3 interacted with 4 different neighbors.
+	*What this matrix tell us is that, up until now, node3 interacted with 4
+	* different neighbors.
 	*For example, node3 interacted with node2  16 times.
-	*    From those 16 interactions, 7 were successful (node2 satisfied the request) and 9 were failures.
+	*    From those 16 interactions, 7 were successful (node2 satisfied the
+	*    request) and 9 were failures.
 	*
 	*/
 
