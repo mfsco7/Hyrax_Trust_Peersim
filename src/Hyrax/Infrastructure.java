@@ -27,11 +27,11 @@ public class Infrastructure {
      *******************/
     public static void init(int bSize, int attPid, ReputationMatrix
             repMatrixNode1) {
-        repBuffer = new HashMap<Integer, ReputationMatrix>();
+        repBuffer = new HashMap<>();
         bufferSize = bSize;
         repDatabase = new ReputationDatabase();
         atrbPid = attPid;
-        nodesToUpdate = new ArrayList<Integer>();
+        nodesToUpdate = new ArrayList<>();
         if (repMatrixNode1 != null) {
             sendMatrix(4, repMatrixNode1);
         }
@@ -82,7 +82,7 @@ public class Infrastructure {
         for (int rated : nodesToUpdate) {
             //the list of raters for this specific 'rated node' starts off as
             // containing all the nodes that submitted a matrix this round.
-            ArrayList<Integer> raters = new ArrayList<Integer>(repBuffer
+            ArrayList<Integer> raters = new ArrayList<>(repBuffer
                     .keySet());
             //we shall promptly remove the raters that did not rate this node.
             raters.remove((Integer) rated); //remove itself (if present on
@@ -134,8 +134,8 @@ public class Infrastructure {
         while (change && raters.size() > 2) {
             change = false;
 
-            HashMap<Integer, Integer> numberOfRatings = new HashMap<Integer,
-                    Integer>(); //contains the total number of ratings for
+            HashMap<Integer, Integer> numberOfRatings = new HashMap<>();
+            //contains the total number of ratings for
             // every rater (regarding a given rated node).
             //first Integer is the raterID and second integer is the total
             // number of ratings (interactions)
@@ -147,7 +147,8 @@ public class Infrastructure {
 
             //compute median
             double median;
-            Integer[] values = numberOfRatings.values().toArray(new Integer[0]);
+            Integer[] values = numberOfRatings.values().toArray(
+                    new Integer[numberOfRatings.values().size()]);
             Arrays.sort(values);
             int size = values.length;
             int middle = size / 2;
@@ -158,7 +159,7 @@ public class Infrastructure {
             }
 
             //compute deviations
-            ArrayList<Double> deviations = new ArrayList<Double>();
+            ArrayList<Double> deviations = new ArrayList<>();
             for (int value : numberOfRatings.values()) {
                 double dev = Math.abs(median - value);
                 deviations.add(dev);
@@ -244,8 +245,8 @@ public class Infrastructure {
                 // be Zero. Normally, the number 1 is added to prevent this.
                 //However, we find that adding 0.1 works aswell, and c	auses
                 // less impact on the distribution.
-                BetaDistribution bDist = new BetaDistribution(raterAlpha + 0
-                .1, raterBeta + 0.1);
+                BetaDistribution bDist = new BetaDistribution(raterAlpha + 0.1,
+                                                              raterBeta + 0.1);
 
                 double q = 0.05; //the q parameter may be modified.
                 //A higher 'q' means a higher number of FalsePositives
