@@ -239,15 +239,18 @@ public class Initializer implements Control {
     }
 
     private ReputationMatrix parseRepMatrix(String nodeRepMatrix) {
-        ReputationMatrix repMatrix = new ReputationMatrix();
-        String[] nodesRep = nodeRepMatrix.split(";");
-        for (int i = 0; i < nodesRep.length; i++) {
-            String[] alphaBeta = nodesRep[i].split("-");
-            int alpha = Integer.parseInt(alphaBeta[0]);
-            int beta = Integer.parseInt(alphaBeta[1]);
-            repMatrix.updateRatings(i, alpha, beta);
+        if (nodeRepMatrix != null) {
+            ReputationMatrix repMatrix = new ReputationMatrix();
+            String[] nodesRep = nodeRepMatrix.split(";");
+            for (int i = 0; i < nodesRep.length; i++) {
+                String[] alphaBeta = nodesRep[i].split("-");
+                int alpha = Integer.parseInt(alphaBeta[0]);
+                int beta = Integer.parseInt(alphaBeta[1]);
+                repMatrix.updateRatings(i, alpha, beta);
+            }
+            return repMatrix;
         }
-        return repMatrix;
+        return null;
     }
 
 

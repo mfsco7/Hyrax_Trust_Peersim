@@ -1,6 +1,7 @@
 package Hyrax;
 
 import org.apache.commons.math3.distribution.BetaDistribution;
+import peersim.cdsim.CDState;
 import utils.ReputationDatabase;
 import utils.ReputationMatrix;
 
@@ -34,6 +35,7 @@ public class Infrastructure {
         nodesToUpdate = new ArrayList<>();
         if (repMatrixNode1 != null) {
             sendMatrix(4, repMatrixNode1);
+
         }
     }
 
@@ -53,7 +55,8 @@ public class Infrastructure {
         }
         if (bufferSize <= repBuffer.size()) { //when buffer is full... time
             // to update reputations in the infrastructure's database
-            System.out.println("INFRASTRUCTURE: updating reputations");
+            System.out.println("INFRASTRUCTURE: updating reputations " +
+                    CDState.getCycle());
             computeReputations();
             repBuffer.clear();
             nodesToUpdate.clear();
@@ -99,7 +102,8 @@ public class Infrastructure {
             // order to filter dubious raters.
 
             //overflowerFilter(rated, raters);
-            unfairRatingFilter(rated, raters);
+//            unfairRatingFilter(rated, raters);
+            unfairRatingFilter2(rated, raters, 0.2f);
 
             //hopefully the raters that remained on the list are considered
             // 'fairRaters' and as such, we'll update the database with their
@@ -243,7 +247,7 @@ public class Infrastructure {
                         raterBeta);
                 //When drawing the distribution, the alpha and beta can never
                 // be Zero. Normally, the number 1 is added to prevent this.
-                //However, we find that adding 0.1 works aswell, and c	auses
+                //However, we find that adding 0.1 works aswell, and causes
                 // less impact on the distribution.
                 BetaDistribution bDist = new BetaDistribution(raterAlpha + 0.1,
                                                               raterBeta + 0.1);
@@ -270,4 +274,59 @@ public class Infrastructure {
 
         }
     }
+
+    /**
+     * This version of unfair rating filter, takes advantage of geometric
+     * mean and some deviation variable to deal with outliers
+     * @param rated
+     * @param raters
+     * @param deviation Value used on calculating the outliers
+     */
+    private static void unfairRatingFilter2(int rated, ArrayList<Integer>
+            raters, float deviation) {
+
+        int rater;
+        double freq;
+        double geoMean = calculateGeoMean(rated, raters);
+        Iterator<Integer> iterator;
+
+        System.out.println(rated + " geomMean: " + geoMean);
+
+        iterator = raters.iterator();
+        while (iterator.hasNext()) {
+            rater = iterator.next();
+            int[] rep = repBuffer.get(rater).getAlphaBeta(rated);
+            freq = (rep[0] + 1.0) / (rep[0] + rep[1] + 2);
+
+            System.out.print(rated + ": " + freq + " ");
+
+            if (Math.abs(freq - geoMean) > deviation * geoMean) {
+                iterator.remove();
+                repDatabase.addCounter(rater, false);
+                System.out.print("outlier");
+            }
+            System.out.println();
+        }
+
+    }
+
+    /**
+     * Perform the geometric mean calculation on the reputation buffer for
+     * node rated
+     * @param rated Geometric Mean will be calculated for this node
+     * @param raters List of nodes which rated the node 'rated'
+     * @return
+     */
+    private static double calculateGeoMean(int rated,
+                                           ArrayList<Integer> raters) {
+        double freq = 1;
+        for (int rater : raters) {
+            int[] rep = repBuffer.get(rater).getAlphaBeta(rated);
+
+            freq *= (rep[0] + 1.0) / (rep[0] + rep[1] + 2);
+        }
+//        org.apache.commons.math3.analysis.function.Pow
+        return Math.pow(freq, (1.0 / raters.size()));
+    }
+
 }
