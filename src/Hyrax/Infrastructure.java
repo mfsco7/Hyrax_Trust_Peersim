@@ -27,16 +27,12 @@ public class Infrastructure {
      * init method   *
      *******************/
     public static void init(int bSize, int attPid,
-                            ReputationMatrix repMatrixNode1, float deviation) {
+                            ReputationDatabase repDB, float deviation) {
         repBuffer = new HashMap<>();
         bufferSize = bSize;
-        repDatabase = new ReputationDatabase();
+        repDatabase = repDB;
         atrbPid = attPid;
         nodesToUpdate = new ArrayList<>();
-        if (repMatrixNode1 != null) {
-            sendMatrix(4, repMatrixNode1);
-
-        }
         Infrastructure.deviation = deviation;
     }
 

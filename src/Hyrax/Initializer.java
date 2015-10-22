@@ -5,10 +5,12 @@ import peersim.config.Configuration;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
+import utils.ReputationDatabase;
 import utils.ReputationMatrix;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -32,7 +34,8 @@ public class Initializer implements Control {
     private static final String PAR_RANDOMS = "randomRaters";
     private static final String PAR_REPORTS = "maxReports";
     private static final String PAR_BUFFERSIZE = "infrastructureBufferSize";
-    private static final String PAR_NODE1REPTMATRIX = "node1RepMatrix";
+    private static final String PAR_INIT_REP_DB = "initRepDB";
+    private static final String PAR_INIT_REP_MAT = "initRepMatrices";
     private static final String PAR_DEVIATION = "deviation";
 
     /******************************
@@ -48,7 +51,8 @@ public class Initializer implements Control {
     private static int maxReports;
     private static int bufferSize;
     private static int maxCycles;
-    private static String node1RepMatrix;
+    private static String initRepDB;
+    private static String initRepMatrices;
     private static float deviation;
 
     /******************************
@@ -73,8 +77,10 @@ public class Initializer implements Control {
         maxReports = Configuration.getInt(prefix + "." + PAR_REPORTS, 4);
         //the number of times that the nodes report their matrixes to the
         // infrastructure per simulation. Defaults to 4.
-        node1RepMatrix = Configuration.getString(prefix + "." +
-                PAR_NODE1REPTMATRIX, null);
+        initRepDB = Configuration.getString(prefix + "." +
+                PAR_INIT_REP_DB, "");
+        initRepMatrices = Configuration.getString(prefix + "." +
+                PAR_INIT_REP_MAT, "");
         deviation = Configuration.getInt(prefix + "." + PAR_DEVIATION, 20) /
                 100.0f;
     }
@@ -91,7 +97,7 @@ public class Initializer implements Control {
         Random rand = new Random();
 
         Infrastructure.init(bufferSize, attpid,
-                parseRepMatrix(node1RepMatrix), deviation);
+                parseRepDB(initRepDB), deviation);
         Observer.init(maxReports, maxCycles, attpid);
 
         ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /*
@@ -157,6 +163,8 @@ public class Initializer implements Control {
         Collections.shuffle(nodeRandomRaters);
         Collections.shuffle(nodeVictims);
 
+        HashMap<Integer, ReputationMatrix> nodeRepMatrices =
+                parseRepMatrices(initRepMatrices);
 
         //assign the values to every node
         for (int i = 0; i < Network.size(); i++) {
@@ -182,6 +190,9 @@ public class Initializer implements Control {
             if (!nodeVictims.isEmpty()) {
                 atribs.setVictim(nodeVictims.get(i));
             }
+            if (nodeRepMatrices.containsKey(i)) {
+                atribs.setRepMatrix(nodeRepMatrices.get(i));
+            }
 
         }
 
@@ -198,6 +209,7 @@ public class Initializer implements Control {
             System.out.println("randomChance = " + atribs.getRandomChance());
             System.out.println("Reputation =" + Infrastructure
                     .askForReputation(i));
+            System.out.println(atribs.getRepMatrix().size());
             System.out.println
                     ("««««««««««««««««««««««««««««««««««««««««««««««««««");
         }
@@ -243,20 +255,65 @@ public class Initializer implements Control {
         return result;
     }
 
-    private ReputationMatrix parseRepMatrix(String nodeRepMatrix) {
-        if (nodeRepMatrix != null) {
-            ReputationMatrix repMatrix = new ReputationMatrix();
-            String[] nodesRep = nodeRepMatrix.split(";");
-            for (int i = 0; i < nodesRep.length; i++) {
-                String[] alphaBeta = nodesRep[i].split("-");
+    /**
+     * Parses a string by the form of "node1:alpha-beta;..."
+     * and creates a ReputationDatabase accordingly
+     * @param initRepDB String to parse containing the ReputationDatabase
+     * @return A ReputationDatabase
+     */
+    private ReputationDatabase parseRepDB(String initRepDB) {
+        ReputationDatabase repDB = new ReputationDatabase();
+        if (initRepDB != null) {
+            String[] nodesRep = initRepDB.split(";");
+            for (String nodeRep : nodesRep) {
+                String[] nodeRep2 = nodeRep.split(":");
+                int node = Integer.parseInt(nodeRep2[0]);
+
+                String[] alphaBeta = nodeRep2[1].split("-");
                 int alpha = Integer.parseInt(alphaBeta[0]);
                 int beta = Integer.parseInt(alphaBeta[1]);
-                repMatrix.updateRatings(i, alpha, beta);
+
+                repDB.addRatings(node, alpha, beta);
             }
-            return repMatrix;
         }
-        return null;
+        return repDB;
     }
 
+    /**
+     * Parses a string by the form of node1:{node2:alpha-beta;...},... and
+     * creates a HashMap. Each pair of the HashMap is a integer representing
+     * the node and a ReputationMatrix of that node.
+     * For example, if the string is "3:{1:3-2}", that will result in node 3
+     * having a ReputationMatrix with 3 positive interactions with node 1 and
+     * 2 negative interactions
+     * @param initRepMatrices String to be parsed
+     * @return A HashMap containing a ReputationMatrix associated with
+     * respective node
+     */
+    private HashMap<Integer, ReputationMatrix> parseRepMatrices(String initRepMatrices) {
+        HashMap<Integer, ReputationMatrix> repMatrices = new HashMap<>();
+        if (initRepMatrices != null) {
+            String[] nodesMatrices = initRepMatrices.split(",");
+            for (String nodeMatrix : nodesMatrices) {
+                String[] nodeRepMatrix = nodeMatrix.split(":\\{|\\}");
 
+                int node = Integer.parseInt(nodeRepMatrix[0]);
+                String[] nodesRep = nodeRepMatrix[1].split(";");
+                ReputationMatrix repMatrix = new ReputationMatrix();
+
+                for (String nodeRep : nodesRep) {
+                    String[] nodeRep2 = nodeRep.split(":");
+                    int node2 = Integer.parseInt(nodeRep2[0]);
+
+                    String[] alphaBeta = nodeRep2[1].split("-");
+                    int alpha = Integer.parseInt(alphaBeta[0]);
+                    int beta = Integer.parseInt(alphaBeta[1]);
+
+                    repMatrix.updateRatings(node2, alpha, beta);
+                }
+                repMatrices.put(node, repMatrix);
+            }
+        }
+        return repMatrices;
+    }
 }
