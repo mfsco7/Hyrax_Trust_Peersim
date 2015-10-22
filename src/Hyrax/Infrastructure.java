@@ -286,7 +286,8 @@ public class Infrastructure {
         double geoMean = calculateGeoMean(rated, raters);
         Iterator<Integer> iterator;
 
-        System.out.println(rated + " geomMean: " + geoMean);
+        System.out.println("INFRASTRUCTURE: " + rated + " geomMean: " +
+                geoMean);
 
         iterator = raters.iterator();
         while (iterator.hasNext()) {
@@ -294,7 +295,9 @@ public class Infrastructure {
             int[] rep = repBuffer.get(rater).getAlphaBeta(rated);
             freq = (rep[0] + 1.0) / (rep[0] + rep[1] + 2);
 
-            System.out.print(rated + ": " + freq + " ");
+            System.out.print("INFRASTRUCTURE: " + rater + "->" + rated +
+                    " alpha = " + rep[0] + " beta = " + rep[1] + " freq = " +
+                    freq);
 
             if (Math.abs(freq - geoMean) > deviation * geoMean) {
                 iterator.remove();

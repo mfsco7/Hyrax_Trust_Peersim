@@ -35,7 +35,7 @@ public class Observer implements Control {
     //the initializer calls this method
     public static void init(int maxRep, int maxC, int attpid) {
         System.out.println("Observer was initiated");
-        reportingInterval = (maxC - 1) / maxRep + 1;
+        reportingInterval = Math.max((maxC - 1) / maxRep, 1);
         maxCycles = maxC;
         atribpid = attpid;
         //		currentCycle      = -1;
@@ -51,47 +51,36 @@ public class Observer implements Control {
     //this method is called by Peersim once every cycle
     @Override
     public boolean execute() {
-        //		currentCycle++;
-        //		System.out.println("OBSERVER: currentCycle " + currentCycle);
-        //		System.out.println("OBSERVER: cdstatecycle " + CDState
-        // .getCycle());
-        if (CDState.getCycle() == maxCycles - 1) {
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        for (int i = 0; i < Network.size(); i++) {
+            Node n = Network.get(i);
+            NodeAttributes atribs = (NodeAttributes) n.getProtocol(atribpid);
+            System.out.print("Node" + n.getID() + " is ");
+            if (atribs.isVictim()) {
+                System.out.print("Victim ");
             }
-            for (int i = 0; i < Network.size(); i++) {
-                Node n = Network.get(i);
-                NodeAttributes atribs = (NodeAttributes) n.getProtocol
-                        (atribpid);
-                System.out.print("Node" + n.getID() + " is ");
-                if (atribs.isVictim()) {
-                    System.out.print("Victim ");
-                }
-                if (atribs.isRandomRater()) {
-                    System.out.print("RandomRater ");
-                }
-                if (atribs.isEvilOverstater()) {
-                    System.out.print("Overstater ");
-                }
-                if (!atribs.isEvilOverstater() && !atribs.isRandomRater() &&
-                        !atribs.isVictim()) {
-                    System.out.print("Normal");
-                }
-                System.out.println("");
+            if (atribs.isRandomRater()) {
+                System.out.print("RandomRater ");
+            }
+            if (atribs.isEvilOverstater()) {
+                System.out.print("Overstater ");
+            }
+            if (!atribs.isEvilOverstater() &&
+                    !atribs.isRandomRater() &&
+                    !atribs.isVictim()) {
+                System.out.print("Normal");
+            }
+            System.out.println("");
 
-                System.out.println("kindness = " + atribs.getKindness() + ", " +
-                        "reputation = " + Infrastructure.askForReputation(
-                        (int) n.getID()));
-                int[] credibility = Infrastructure.askForCredibility((int) n
-                        .getID());
-                System.out.println("his ratings were accepted " +
-                        credibility[0] + " times");
-                System.out.println("his ratings were rejected " +
-                        credibility[1] + " times");
-                System.out.println("---------------------");
-            }
+            System.out.println("kindness = " + atribs.getKindness() + ", " +
+                    "reputation = " + Infrastructure.askForReputation(
+                    (int) n.getID()));
+            int[] credibility = Infrastructure.askForCredibility(
+                    (int) n.getID());
+            System.out.println("his ratings were accepted " +
+                    credibility[0] + " times");
+            System.out.println("his ratings were rejected " +
+                    credibility[1] + " times");
+            System.out.println("---------------------");
         }
         return false;
     }
