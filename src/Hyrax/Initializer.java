@@ -75,7 +75,8 @@ public class Initializer implements Control {
         // infrastructure per simulation. Defaults to 4.
         node1RepMatrix = Configuration.getString(prefix + "." +
                 PAR_NODE1REPTMATRIX, null);
-        deviation = Configuration.getInt(prefix + "." + PAR_DEVIATION, 20) / 100;
+        deviation = Configuration.getInt(prefix + "." + PAR_DEVIATION, 20) /
+                100.0f;
     }
 
 
