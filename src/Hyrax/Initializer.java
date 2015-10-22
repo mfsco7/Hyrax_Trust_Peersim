@@ -263,7 +263,7 @@ public class Initializer implements Control {
      */
     private ReputationDatabase parseRepDB(String initRepDB) {
         ReputationDatabase repDB = new ReputationDatabase();
-        if (initRepDB != null) {
+        if (initRepDB != null && !initRepDB.equals("")) {
             String[] nodesRep = initRepDB.split(";");
             for (String nodeRep : nodesRep) {
                 String[] nodeRep2 = nodeRep.split(":");
@@ -292,7 +292,7 @@ public class Initializer implements Control {
      */
     private HashMap<Integer, ReputationMatrix> parseRepMatrices(String initRepMatrices) {
         HashMap<Integer, ReputationMatrix> repMatrices = new HashMap<>();
-        if (initRepMatrices != null) {
+        if (initRepMatrices != null && !initRepMatrices.equals("")) {
             String[] nodesMatrices = initRepMatrices.split(",");
             for (String nodeMatrix : nodesMatrices) {
                 String[] nodeRepMatrix = nodeMatrix.split(":\\{|\\}");
