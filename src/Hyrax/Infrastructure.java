@@ -21,13 +21,13 @@ public class Infrastructure {
     private static int atrbPid; //the protocolID to access nodes's attributes
     private static ArrayList<Integer> nodesToUpdate; //contains all nodeIDs
     // that received at least one rating from other nodes this round.
-
+    private static float deviation;
 
     /*******************
      * init method   *
      *******************/
-    public static void init(int bSize, int attPid, ReputationMatrix
-            repMatrixNode1) {
+    public static void init(int bSize, int attPid,
+                            ReputationMatrix repMatrixNode1, float deviation) {
         repBuffer = new HashMap<>();
         bufferSize = bSize;
         repDatabase = new ReputationDatabase();
@@ -37,6 +37,7 @@ public class Infrastructure {
             sendMatrix(4, repMatrixNode1);
 
         }
+        Infrastructure.deviation = deviation;
     }
 
 
@@ -103,7 +104,7 @@ public class Infrastructure {
 
             //overflowerFilter(rated, raters);
 //            unfairRatingFilter(rated, raters);
-            unfairRatingFilter2(rated, raters, 0.2f);
+            unfairRatingFilter2(rated, raters);
 
             //hopefully the raters that remained on the list are considered
             // 'fairRaters' and as such, we'll update the database with their
@@ -280,10 +281,9 @@ public class Infrastructure {
      * mean and some deviation variable to deal with outliers
      * @param rated
      * @param raters
-     * @param deviation Value used on calculating the outliers
      */
     private static void unfairRatingFilter2(int rated, ArrayList<Integer>
-            raters, float deviation) {
+            raters) {
 
         int rater;
         double freq;

@@ -33,6 +33,7 @@ public class Initializer implements Control {
     private static final String PAR_REPORTS = "maxReports";
     private static final String PAR_BUFFERSIZE = "infrastructureBufferSize";
     private static final String PAR_NODE1REPTMATRIX = "node1RepMatrix";
+    private static final String PAR_DEVIATION = "deviation";
 
     /******************************
      * FIELDS            *
@@ -48,6 +49,7 @@ public class Initializer implements Control {
     private static int bufferSize;
     private static int maxCycles;
     private static String node1RepMatrix;
+    private static float deviation;
 
     /******************************
      * Constructor         *
@@ -73,6 +75,7 @@ public class Initializer implements Control {
         // infrastructure per simulation. Defaults to 4.
         node1RepMatrix = Configuration.getString(prefix + "." +
                 PAR_NODE1REPTMATRIX, null);
+        deviation = Configuration.getInt(prefix + "." + PAR_DEVIATION, 20) / 100;
     }
 
 
@@ -86,7 +89,8 @@ public class Initializer implements Control {
     public boolean execute() {
         Random rand = new Random();
 
-        Infrastructure.init(bufferSize, attpid, parseRepMatrix(node1RepMatrix));
+        Infrastructure.init(bufferSize, attpid,
+                parseRepMatrix(node1RepMatrix), deviation);
         Observer.init(maxReports, maxCycles, attpid);
 
         ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /*
