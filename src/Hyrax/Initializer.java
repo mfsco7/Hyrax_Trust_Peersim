@@ -97,7 +97,7 @@ public class Initializer implements Control {
         Random rand = new Random();
 
         Infrastructure.init(bufferSize, attpid,
-                parseRepDB(initRepDB), deviation);
+                /*parseRepDB(initRepDB)*/ new ReputationDatabase(), deviation);
         Observer.init(maxReports, maxCycles, attpid);
 
         ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /*
@@ -208,7 +208,7 @@ public class Initializer implements Control {
             System.out.println("isRandomRater = " + atribs.isRandomRater());
             System.out.println("randomChance = " + atribs.getRandomChance());
             System.out.println("Reputation =" + Infrastructure
-                    .askForReputation(i));
+                    .askForAvgReputation(i));
             System.out.println(atribs.getRepMatrix().size());
             System.out.println
                     ("««««««««««««««««««««««««««««««««««««««««««««««««««");
@@ -255,29 +255,29 @@ public class Initializer implements Control {
         return result;
     }
 
-    /**
-     * Parses a string by the form of "node1:alpha-beta;..."
-     * and creates a ReputationDatabase accordingly
-     * @param initRepDB String to parse containing the ReputationDatabase
-     * @return A ReputationDatabase
-     */
-    private ReputationDatabase parseRepDB(String initRepDB) {
-        ReputationDatabase repDB = new ReputationDatabase();
-        if (initRepDB != null && !initRepDB.equals("")) {
-            String[] nodesRep = initRepDB.split(";");
-            for (String nodeRep : nodesRep) {
-                String[] nodeRep2 = nodeRep.split(":");
-                int node = Integer.parseInt(nodeRep2[0]);
-
-                String[] alphaBeta = nodeRep2[1].split("-");
-                int alpha = Integer.parseInt(alphaBeta[0]);
-                int beta = Integer.parseInt(alphaBeta[1]);
-
-                repDB.addRatings(node, alpha, beta);
-            }
-        }
-        return repDB;
-    }
+//    /**
+//     * Parses a string by the form of "node1:alpha-beta;..."
+//     * and creates a ReputationDatabase accordingly
+//     * @param initRepDB String to parse containing the ReputationDatabase
+//     * @return A ReputationDatabase
+//     */
+//    private ReputationDatabase parseRepDB(String initRepDB) {
+//        ReputationDatabase repDB = new ReputationDatabase();
+//        if (initRepDB != null && !initRepDB.equals("")) {
+//            String[] nodesRep = initRepDB.split(";");
+//            for (String nodeRep : nodesRep) {
+//                String[] nodeRep2 = nodeRep.split(":");
+//                int node = Integer.parseInt(nodeRep2[0]);
+//
+//                String[] alphaBeta = nodeRep2[1].split("-");
+//                int alpha = Integer.parseInt(alphaBeta[0]);
+//                int beta = Integer.parseInt(alphaBeta[1]);
+//
+//                repDB.addRatings(node, alpha, beta);
+//            }
+//        }
+//        return repDB;
+//    }
 
     /**
      * Parses a string by the form of node1:{node2:alpha-beta;...},... and

@@ -35,7 +35,8 @@ public class Observer implements Control {
     //the initializer calls this method
     public static void init(int maxRep, int maxC, int attpid) {
         System.out.println("Observer was initiated");
-        reportingInterval = Math.max((maxC - 1) / maxRep, 1);
+        //TODO check if the observer needs this vars
+        reportingInterval = Math.max(maxC / maxRep, 1);
         maxCycles = maxC;
         atribpid = attpid;
         //		currentCycle      = -1;
@@ -44,7 +45,8 @@ public class Observer implements Control {
     //nodes ask the 'observer' if they're supposed to report their matrix to
     // the infrastructure this cycle
     public static boolean isTimeToReport() {
-        return ((CDState.getCycle()) % reportingInterval) == 0;
+        //TODO move this method to infrastructure
+        return ((CDState.getCycle() + 1) % reportingInterval) == 0;
     }
 
 
@@ -72,7 +74,7 @@ public class Observer implements Control {
             System.out.println("");
 
             System.out.println("kindness = " + atribs.getKindness() + ", " +
-                    "reputation = " + Infrastructure.askForReputation(
+                    "avg reputation = " + Infrastructure.askForAvgReputation(
                     (int) n.getID()));
             int[] credibility = Infrastructure.askForCredibility(
                     (int) n.getID());

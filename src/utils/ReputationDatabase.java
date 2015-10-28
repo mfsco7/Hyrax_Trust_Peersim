@@ -1,5 +1,8 @@
 package utils;
 
+import Hyrax.Infrastructure;
+import peersim.core.Network;
+
 import java.util.Hashtable;
 
 
@@ -9,7 +12,7 @@ public class ReputationDatabase {
     // nodeX (excluding malicious ratings)
     //The final reputation of nodes shall be their (TotalAlpha / TotalAlpha +
     // TotalBeta)
-    Hashtable<Integer, int[]> reputations;
+    Hashtable<Integer, int[]>[] reputations;
 
     //this 'credibilities' hashtable will serve to store counters for the
     // number of times a node is caught lying (his ratings were disapproved
@@ -22,12 +25,14 @@ public class ReputationDatabase {
     // rater weight when averaging ratings.
     Hashtable<Integer, int[]> credibilities;
 
-
     public ReputationDatabase() {
-        reputations = new Hashtable<Integer, int[]>();
-        credibilities = new Hashtable<Integer, int[]>();
+        //TODO redo this assignment
+        reputations = new Hashtable[Network.size()];
+        for (int i = 0; i < Network.size(); i++) {
+            reputations[i] = new Hashtable<>();
+        }
+        credibilities = new Hashtable<>();
     }
-
 
 /*
 public void updateMatrix(int nodeID , ReputationMatrix mat){
@@ -45,10 +50,10 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
 
 */
 
-    public String getReputation(int nodeID) {
+    public String getReputation(int rater, int rated) {
 
-        if (reputations.containsKey(nodeID)) {
-            int[] alphaBeta = reputations.get(nodeID);
+        if (reputations[rated].containsKey(rater)) {
+            int[] alphaBeta = reputations[rated].get(rater);
             double alpha = (double) alphaBeta[0];
             double beta = (double) alphaBeta[1];
             double reputation = (alpha + 1) / (alpha + beta + 2);
@@ -56,7 +61,25 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
         } else {
             return "Not Rated";
         }
+    }
 
+    public String getAvgReputation(int rated) {
+
+        int numReps = 0;
+        double reputationSum = 0;
+
+        Hashtable<Integer, Double> goodReputations = unfairRatingFilter(rated);
+
+        System.out.println("RepDB: AvgReputation");
+        for (int rater : goodReputations.keySet()) {
+            Double rep = goodReputations.get(rater);
+            reputationSum += rep;
+            numReps++;
+            System.out.println("RepDB: " + rater + "->" + rated + " " +
+                    rep);
+        }
+        return (numReps == 0) ? "Not Rated" : (Double.toString
+                (reputationSum/numReps)) ;
     }
 
     public int[] getCredibility(int nodeID) {
@@ -67,18 +90,16 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
         }
     }
 
-    public void addRatings(int nodeID, int alpha, int beta) {
-
-        if (reputations.containsKey(nodeID)) {
-            int[] oldAlphaBeta = reputations.get(nodeID);
+    public void addRatings(int rater, int rated, int alpha, int beta) {
+        if (reputations[rated].containsKey(rater)) {
+            int[] oldAlphaBeta = reputations[rated].get(rater);
             int[] newAlphaBeta = {oldAlphaBeta[0] + alpha, oldAlphaBeta[1] +
                     beta};
-            reputations.put(nodeID, newAlphaBeta);
+            reputations[rated].put(rater, newAlphaBeta);
         } else {
             int[] alphaBeta = {alpha, beta};
-            reputations.put(nodeID, alphaBeta);
+            reputations[rated].put(rater, alphaBeta);
         }
-
     }
 
     public void addCounter(int nodeID, boolean result) {
@@ -97,5 +118,49 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
         }
     }
 
+    /**
+     * Fetch the ratings of each rater, computes their respective frequency
+     * and then calculates the nth root of frequency, being n the number of
+     * raters of that node
+     * @param rated The node we want to now the Geometric Mean
+     * @return Geometric Mean for rated node
+     */
+    private double calcGeoMean(int rated) {
+        double freq = 1;
+        for (int[] rating : reputations[rated].values()) {
+            freq *= (rating[0] + 1.0) / (rating[0] + rating[1] + 2);
+        }
+        return Math.pow(freq, (1.0 / reputations[rated].size()));
+    }
 
+    /**
+     * Calculates the rated Geometric Mean and check the outlier raters by
+     * comparing their frequency with a deviation parameter using the
+     * formula: | rater_freq - geo_mean| > deviation * geo_mean. If previous
+     * formula succeeds then rater is outlier and is not returned
+     * @param rated The node which the filter will be applied
+     * @return A pair of <rater,freq> that passed in this filter
+     */
+    private Hashtable<Integer, Double> unfairRatingFilter(int rated) {
+
+        double geoMean = calcGeoMean(rated);
+        Hashtable<Integer, Double> goodReputations = new Hashtable<>();
+
+        System.out.println("RepDB: " + rated + " geoMean " + geoMean);
+        for (Integer rater : reputations[rated].keySet()) {
+            int[] alphaBeta = reputations[rated].get(rater);
+            double alpha = (double) alphaBeta[0];
+            double beta = (double) alphaBeta[1];
+            double rep = (alpha + 1) / (alpha + beta + 2);
+            System.out.print("RepDB: " + rater + " " + rep);
+            if (Math.abs(rep - geoMean) > Infrastructure.getDeviation() *
+                    geoMean) {
+                System.out.print(" outlier");
+            } else {
+                goodReputations.put(rater, rep);
+            }
+            System.out.println();
+        }
+        return goodReputations;
+    }
 }

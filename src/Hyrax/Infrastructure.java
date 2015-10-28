@@ -61,8 +61,12 @@ public class Infrastructure {
     }
 
     //called by the observer to print the final reputations at the last cycle
-    public static String askForReputation(int nodeID) {
-        return repDatabase.getReputation(nodeID);
+    public static String askForReputation(int rater, int rated) {
+        return repDatabase.getReputation(rater, rated);
+    }
+
+    public static String askForAvgReputation(int rated) {
+        return repDatabase.getAvgReputation(rated);
     }
 
     //called by the observer to print the number of times ratings were
@@ -100,7 +104,7 @@ public class Infrastructure {
 
             //overflowerFilter(rated, raters);
 //            unfairRatingFilter(rated, raters);
-            unfairRatingFilter2(rated, raters);
+//            unfairRatingFilter2(rated, raters);
 
             //hopefully the raters that remained on the list are considered
             // 'fairRaters' and as such, we'll update the database with their
@@ -110,7 +114,7 @@ public class Infrastructure {
                         .getAlphaBeta(rated);
                 repDatabase.addCounter(fairRater, true); //this rater gave a
                 // 'fairRating', so we update his credibility.
-                repDatabase.addRatings(rated, fairRaterAlphaBeta[0],
+                repDatabase.addRatings(fairRater, rated, fairRaterAlphaBeta[0],
                         fairRaterAlphaBeta[1]);
             }
 
@@ -283,6 +287,10 @@ public class Infrastructure {
 
         int rater;
         double freq;
+
+        System.out.println("INFRASTRUCTURE: " + rated + " prevRep: " +
+                askForAvgReputation(rated));
+
         double geoMean = calculateGeoMean(rated, raters);
         Iterator<Integer> iterator;
 
@@ -324,8 +332,11 @@ public class Infrastructure {
 
             freq *= (rep[0] + 1.0) / (rep[0] + rep[1] + 2);
         }
-//        org.apache.commons.math3.analysis.function.Pow
+        //        org.apache.commons.math3.analysis.function.Pow
         return Math.pow(freq, (1.0 / raters.size()));
     }
 
+    public static float getDeviation() {
+        return deviation;
+    }
 }
