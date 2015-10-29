@@ -14,18 +14,16 @@ import java.util.HashMap;
 import java.util.Random;
 
 /**
- * This class will read the configuration file and
- * initialize all node according to the parameters.
- * <p>
+ * This class will read the configuration file and initialize all node
+ * according to the parameters.
  * It runs only once at the beginning of the simulation
  */
 public class Initializer implements Control {
 
     /******************************
-     * PARAMETERS           *
+     * PARAMETERS
      * (for reading the config file)*
      ******************************/
-
     private static final String PAR_PROT = "protocol";
     private static final String PAR_KIND = "kindness";
     private static final String PAR_OVERSTATERS = "numberOfOverstaters";
@@ -50,7 +48,9 @@ public class Initializer implements Control {
     private static int nRandoms;
     private static int maxReports;
     private static int bufferSize;
-    /** the total number of cycles for the simulation */
+    /**
+     * the total number of cycles for the simulation
+     */
     private static int maxCycles;
     private static String initRepDB;
     private static String initRepMatrices;
@@ -63,7 +63,7 @@ public class Initializer implements Control {
     public Initializer(String prefix) {
         attpid = Configuration.getPid(prefix + "." + PAR_PROT);
         kindness = Configuration.getString(prefix + "." + PAR_KIND, null);
-        //defaults to null (everyone has random kindness)
+        //defaults to null
         nEvils = Configuration.getInt(prefix + "." + PAR_OVERSTATERS, 0);
         //defaults to 0 (no one is overstating)
         higherEvilValue = Configuration.getInt(prefix + "." +
@@ -95,7 +95,6 @@ public class Initializer implements Control {
 
 
     public boolean execute() {
-        Random rand = new Random();
 
         int reportingInterval = Math.max(maxCycles / maxReports, 1);
         Infrastructure.init(bufferSize, attpid,
@@ -103,103 +102,11 @@ public class Initializer implements Control {
                 deviation, reportingInterval);
         Observer.init(attpid);
 
-        ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /*
-        Lists that will contain values to be attributed        */
-        ArrayList<Boolean> nodeOverstaters = new ArrayList<Boolean>();    /*
-         to the nodes. The lists will be shuffled and the      */
-        ArrayList<Boolean> nodeRandomRaters = new ArrayList<Boolean>();    /*
-          values will be assigned randomly to every node.       */
-        ArrayList<Boolean> nodeVictims = new ArrayList<Boolean>();
-
-        // first we'll define the kindness of the nodes according to the
-        // parameters provided.
-        if (kindness == null) {
-            //no kindness parameter was provided which means all nodes have
-            // random kindness.
-            for (int i = 0; i < Network.size(); i++) {
-                nodeKindness.add(rand.nextInt(101));
-            }
-        } else {
-            nodeKindness = parseKindness(kindness, rand);
-        }
-
-
-        //now we'll define how many nodes are overstaters
-        if (nEvils > 0) {
-            while (nEvils > 0) {
-                nodeOverstaters.add(true);
-                nEvils--;
-            }
-            while (nodeOverstaters.size() < Network.size()) {
-                nodeOverstaters.add(false);
-            }
-        }
-
-
-        //next we'll define how many nodes are random raters
-        if (nRandoms > 0) {
-            while (nRandoms > 0) {
-                nodeRandomRaters.add(true);
-                nRandoms--;
-            }
-            while (nodeRandomRaters.size() < Network.size()) {
-                nodeRandomRaters.add(false);
-            }
-        }
-
-
-        //finally we'll define how many nodes are victims
-        if (nVictims > 0) {
-            while (nVictims > 0) {
-                nodeVictims.add(true);
-                nVictims--;
-            }
-            while (nodeVictims.size() < Network.size()) {
-                nodeVictims.add(false);
-            }
-        }
-
-
-        //shuffle all the lists
-        Collections.shuffle(nodeKindness);
-        Collections.shuffle(nodeOverstaters);
-        Collections.shuffle(nodeRandomRaters);
-        Collections.shuffle(nodeVictims);
-
-        HashMap<Integer, ReputationMatrix> nodeRepMatrices =
-                parseRepMatrices(initRepMatrices);
-
-        //assign the values to every node
-        for (int i = 0; i < Network.size(); i++) {
-            Node n = Network.get(i);
-            NodeAttributes atribs = (NodeAttributes) n.getProtocol(attpid);
-            //assign kindness
-            atribs.setKindness(nodeKindness.get(i));
-            //assign Evilness
-            if (!nodeOverstaters.isEmpty()) {
-                atribs.setOverstater(nodeOverstaters.get(i));
-                if (atribs.isEvilOverstater()) {
-                    atribs.setMaxOverstates(rand.nextInt(higherEvilValue) + 1);
-                }
-            }
-            //assign randomRaters
-            if (!nodeRandomRaters.isEmpty()) {
-                atribs.setRandomRater(nodeRandomRaters.get(i));
-                if (atribs.isRandomRater()) {
-                    atribs.setRandomChance(rand.nextInt(101));
-                }
-            }
-            //assign Victims
-            if (!nodeVictims.isEmpty()) {
-                atribs.setVictim(nodeVictims.get(i));
-            }
-            if (nodeRepMatrices.containsKey(i)) {
-                atribs.setRepMatrix(nodeRepMatrices.get(i));
-            }
-
-        }
+        setNodeAttribs();
 
         //print of every node's attributes for debugging purposes
+        System.out.println
+                ("««««««««««««««««««««««««««««««««««««««««««««««««««");
         for (int i = 0; i < Network.size(); i++) {
             Node n = Network.get(i);
             NodeAttributes atribs = (NodeAttributes) n.getProtocol(attpid);
@@ -217,19 +124,133 @@ public class Initializer implements Control {
                     ("««««««««««««««««««««««««««««««««««««««««««««««««««");
         }
 
-
         return false;
     }
 
+    /**
+     * Sets the nodes attributes like kindness and ReputationMatrices. It also
+     * sets if the node is evil, victim or normal and the respective
+     * attributes associated.
+     */
+    private void setNodeAttribs() {
+        //TODO review this way of node attributes setting
 
-    /**********************************
-     * 'helper function'         *
-     * (for parsing the kindness string *
-     * given as a parameter)      *
-     **********************************/
+        Random rand = new Random();
+        HashMap<Integer, ReputationMatrix> nodeRepMatrices = parseRepMatrices
+                (initRepMatrices);
 
-    private ArrayList<Integer> parseKindness(String kindness, Random rand) {
-        ArrayList<Integer> result = new ArrayList<Integer>();
+        int nInitNodes = setInitNodes(rand, nodeRepMatrices);
+        System.out.println("Infrastructure: " + nInitNodes + " nodes " +
+                "kindness read from config file");
+
+        setRemainingNodes(rand, nInitNodes, nodeRepMatrices);
+    }
+
+    /**
+     * Uses the kindness values provided by config file to set kindness value
+     * of nodes. If the kindness value is less than a threshold, then the
+     * node will be overstater, if there are overstaters to be attributed. If
+     * not the nodes will be randomRaters. If the kindness value is greater
+     * than the threshold then the node will be victims, if there are any
+     * victims to be assigned. If not the nodes will be normal.
+     *
+     * @param rand            A Instance of the Random class
+     * @param nodeRepMatrices The init ReputationMatrices read from config
+     *                        file already parsed
+     * @return The number of kindness values in the config file
+     */
+    private int setInitNodes(Random rand, HashMap<Integer, ReputationMatrix>
+            nodeRepMatrices) {
+        ArrayList<Integer> nodeKindness = new ArrayList<>();
+
+        if (kindness != null) {
+            nodeKindness = parseKindness(kindness);
+        }
+
+        Collections.shuffle(nodeKindness);
+
+        for (int i = 0; i < nodeKindness.size(); i++) {
+            Node n = Network.get(i);
+            NodeAttributes atribs = (NodeAttributes) n.getProtocol(attpid);
+
+            int nodeKind = nodeKindness.get(i);
+            atribs.setKindness(nodeKind);
+
+            if (nodeKind < 50 && nEvils > 0) {
+                atribs.setOverstater(true);
+                atribs.setMaxOverstates(rand.nextInt(higherEvilValue) + 1);
+                nEvils--;
+            }
+            //assign randomRaters
+            else if (nodeKind < 50 && nRandoms > 0) {
+                atribs.setRandomRater(true);
+                atribs.setRandomChance(rand.nextInt(101));
+                nRandoms--;
+            }
+            //assign Victims
+            else if (nVictims > 0) {
+                atribs.setVictim(true);
+                nVictims--;
+            }
+            if (nodeRepMatrices.containsKey(i)) {
+                atribs.setRepMatrix(nodeRepMatrices.get(i));
+            }
+        }
+        return nodeKindness.size();
+    }
+
+    /**
+     * Just assign attributes for remaining nodes. First evil nodes, then
+     * randomRaters, victims and last the normals.
+     *
+     * @param rand            A Instance of the Random class
+     * @param size            The number of kindness values in the config file
+     * @param nodeRepMatrices The init ReputationMatrices read from config
+     *                        file already parsed
+     */
+    private void setRemainingNodes(Random rand, int size, HashMap<Integer,
+            ReputationMatrix> nodeRepMatrices) {
+        for (int i = size; i < Network.size(); i++) {
+            Node n = Network.get(i);
+            NodeAttributes atribs = (NodeAttributes) n.getProtocol(attpid);
+
+            //assign Evilness
+            if (nEvils > 0) {
+                atribs.setOverstater(true);
+                atribs.setKindness(rand.nextInt(51));
+                atribs.setMaxOverstates(rand.nextInt(higherEvilValue) + 1);
+                nEvils--;
+            }
+            //assign randomRaters
+            else if (nRandoms > 0) {
+                atribs.setRandomRater(true);
+                atribs.setKindness(rand.nextInt(51));
+                atribs.setRandomChance(rand.nextInt(101));
+                nRandoms--;
+            }
+            //assign Victims
+            else if (nVictims > 0) {
+                atribs.setVictim(true);
+                atribs.setKindness(rand.nextInt(51) + 50);
+                nVictims--;
+            } else {
+                atribs.setKindness(rand.nextInt(51) + 50);
+            }
+            if (nodeRepMatrices.containsKey(i)) {
+                atribs.setRepMatrix(nodeRepMatrices.get(i));
+            }
+
+        }
+    }
+
+    /**
+     * Helper function for parsing the kindness string given as a parameter
+     *
+     * @param kindness The string to be parsed
+     * @return Kindness values to be attribute to nodes
+     */
+    private ArrayList<Integer> parseKindness(String kindness) {
+        ArrayList<Integer> result = new ArrayList<>();
         kindness = kindness.replaceAll("\\s", ""); // remove whitespaces
         String[] params = kindness.split(",");
         int nNodes;
@@ -242,45 +263,32 @@ public class Initializer implements Control {
                 nNodes--;
             }
         }
-        /* Ricardo's Code
-           for (int i = 0; i < params.length; i++) {
-            int nNodes = Integer.parseInt(params[i].split("=|%")[0]);
-            int chance = Integer.parseInt(params[i].split("=|%")[1]);
-            while (nNodes != 0) {
-                result.add(chance);
-                nNodes--;
-            }
-        }*/
-        while (result.size() < Network.size()) {
-            result.add(rand.nextInt(101));
-        }
-
         return result;
     }
 
-//    /**
-//     * Parses a string by the form of "node1:alpha-beta;..."
-//     * and creates a ReputationDatabase accordingly
-//     * @param initRepDB String to parse containing the ReputationDatabase
-//     * @return A ReputationDatabase
-//     */
-//    private ReputationDatabase parseRepDB(String initRepDB) {
-//        ReputationDatabase repDB = new ReputationDatabase();
-//        if (initRepDB != null && !initRepDB.equals("")) {
-//            String[] nodesRep = initRepDB.split(";");
-//            for (String nodeRep : nodesRep) {
-//                String[] nodeRep2 = nodeRep.split(":");
-//                int node = Integer.parseInt(nodeRep2[0]);
-//
-//                String[] alphaBeta = nodeRep2[1].split("-");
-//                int alpha = Integer.parseInt(alphaBeta[0]);
-//                int beta = Integer.parseInt(alphaBeta[1]);
-//
-//                repDB.addRatings(node, alpha, beta);
-//            }
-//        }
-//        return repDB;
-//    }
+    //    /**
+    //     * Parses a string by the form of "node1:alpha-beta;..."
+    //     * and creates a ReputationDatabase accordingly
+    //     * @param initRepDB String to parse containing the ReputationDatabase
+    //     * @return A ReputationDatabase
+    //     */
+    //    private ReputationDatabase parseRepDB(String initRepDB) {
+    //        ReputationDatabase repDB = new ReputationDatabase();
+    //        if (initRepDB != null && !initRepDB.equals("")) {
+    //            String[] nodesRep = initRepDB.split(";");
+    //            for (String nodeRep : nodesRep) {
+    //                String[] nodeRep2 = nodeRep.split(":");
+    //                int node = Integer.parseInt(nodeRep2[0]);
+    //
+    //                String[] alphaBeta = nodeRep2[1].split("-");
+    //                int alpha = Integer.parseInt(alphaBeta[0]);
+    //                int beta = Integer.parseInt(alphaBeta[1]);
+    //
+    //                repDB.addRatings(node, alpha, beta);
+    //            }
+    //        }
+    //        return repDB;
+    //    }
 
     /**
      * Parses a string by the form of node1:{node2:alpha-beta;...},... and
@@ -289,6 +297,7 @@ public class Initializer implements Control {
      * For example, if the string is "3:{1:3-2}", that will result in node 3
      * having a ReputationMatrix with 3 positive interactions with node 1 and
      * 2 negative interactions
+     *
      * @param initRepMatrices String to be parsed
      * @return A HashMap containing a ReputationMatrix associated with
      * respective node
