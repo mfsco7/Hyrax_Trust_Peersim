@@ -102,7 +102,6 @@ public class ReputationMatrix {
         matrix.clear();
     }
 
-
     public ReputationMatrix clone() {
         ReputationMatrix matrixClone = new ReputationMatrix();
         for (int key : this.matrix.keySet()) {
@@ -110,8 +109,6 @@ public class ReputationMatrix {
         }
         return matrixClone;
     }
-
-
 }
 
 

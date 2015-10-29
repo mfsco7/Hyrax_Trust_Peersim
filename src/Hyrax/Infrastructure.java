@@ -22,18 +22,23 @@ public class Infrastructure {
     private static ArrayList<Integer> nodesToUpdate; //contains all nodeIDs
     // that received at least one rating from other nodes this round.
     private static float deviation;
+    /** Defines how frequently must the nodes report their matrix to the
+     * infrastructure*/
+    private static int reportingInterval;
 
     /*******************
      * init method   *
      *******************/
     public static void init(int bSize, int attPid,
-                            ReputationDatabase repDB, float deviation) {
+                            ReputationDatabase repDB, float dev, int
+                                    reportInterval) {
         repBuffer = new HashMap<>();
         bufferSize = bSize;
         repDatabase = repDB;
         atrbPid = attPid;
         nodesToUpdate = new ArrayList<>();
-        Infrastructure.deviation = deviation;
+        Infrastructure.deviation = dev;
+        Infrastructure.reportingInterval = reportInterval;
     }
 
 
@@ -75,6 +80,12 @@ public class Infrastructure {
         return repDatabase.getCredibility(nodeID);
     }
 
+    //nodes ask the 'observer' if they're supposed to report their matrix to
+    // the infrastructure this cycle
+    public static boolean isTimeToReport() {
+        //TODO move this method to infrastructure
+        return ((CDState.getCycle() + 1) % reportingInterval) == 0;
+    }
 
     /*********************************
      * Update the database with     *

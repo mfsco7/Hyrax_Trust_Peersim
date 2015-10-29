@@ -150,7 +150,7 @@ public class HyraxSimulation implements CDProtocol {
          * check if this node is supposed to report    *
          *     his matrix to the infrastructure        *
          **********************************************/
-        if (Observer.isTimeToReport()) {
+        if (Infrastructure.isTimeToReport()) {
             Infrastructure.sendMatrix((int) n.getID(), nAtrib.getRepMatrix());
             nAtrib.getRepMatrix().clear();
         }

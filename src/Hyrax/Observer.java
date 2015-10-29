@@ -1,54 +1,33 @@
 package Hyrax;
 
-import peersim.cdsim.CDState;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
 
-
-/*The observer, being a 'control' component, will run once in every cycle. 
- * It will keep track of the current cycle number as if it was a clock.
- * Using the cycle number, nodes can know when to report their matrix to the
- * infrastructure.
- * 
- * This observer will have an additional task of printing all final
- * reputations of the nodes at the last cycle of the simulation
- * 
+/**
+ * The observer, being a 'control' component, will run once in every cycle,
+ * except if configure otherwise in the config file.
+ * It will print reputations of the nodes every time it runs.
  */
 public class Observer implements Control {
 
-    private static int reportingInterval; //defines how frequently must the
-    // nodes report their matrix to the infrastructure
-    //	private static int currentCycle; // a cycle symbolizes a time frame,
-    // so this variable symbolizes the clock for the simulation
-    private static int maxCycles;   // the total number of cycles for the
-    // simulation
-    private static int atribpid;    //pid of the atributes's protocol
-
+    /**
+     * PID of the atributes's protocol
+     */
+    private static int atribpid;
 
     public Observer(String prefix) {
         //since we don't need to read any parameters for this component, this
         // is left empty.
     }
 
-
-    //the initializer calls this method
-    public static void init(int maxRep, int maxC, int attpid) {
+    /**
+     * the initializer calls this method
+     */
+    public static void init(int attpid) {
         System.out.println("Observer was initiated");
-        //TODO check if the observer needs this vars
-        reportingInterval = Math.max(maxC / maxRep, 1);
-        maxCycles = maxC;
         atribpid = attpid;
-        //		currentCycle      = -1;
     }
-
-    //nodes ask the 'observer' if they're supposed to report their matrix to
-    // the infrastructure this cycle
-    public static boolean isTimeToReport() {
-        //TODO move this method to infrastructure
-        return ((CDState.getCycle() + 1) % reportingInterval) == 0;
-    }
-
 
     //this method is called by Peersim once every cycle
     @Override
@@ -76,8 +55,8 @@ public class Observer implements Control {
             System.out.println("kindness = " + atribs.getKindness() + ", " +
                     "avg reputation = " + Infrastructure.askForAvgReputation(
                     (int) n.getID()));
-            int[] credibility = Infrastructure.askForCredibility(
-                    (int) n.getID());
+            int[] credibility = Infrastructure.askForCredibility((int) n
+                    .getID());
             System.out.println("his ratings were accepted " +
                     credibility[0] + " times");
             System.out.println("his ratings were rejected " +
@@ -86,5 +65,4 @@ public class Observer implements Control {
         }
         return false;
     }
-
 }

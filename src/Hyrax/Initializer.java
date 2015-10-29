@@ -50,6 +50,7 @@ public class Initializer implements Control {
     private static int nRandoms;
     private static int maxReports;
     private static int bufferSize;
+    /** the total number of cycles for the simulation */
     private static int maxCycles;
     private static String initRepDB;
     private static String initRepMatrices;
@@ -96,9 +97,11 @@ public class Initializer implements Control {
     public boolean execute() {
         Random rand = new Random();
 
+        int reportingInterval = Math.max(maxCycles / maxReports, 1);
         Infrastructure.init(bufferSize, attpid,
-                /*parseRepDB(initRepDB)*/ new ReputationDatabase(), deviation);
-        Observer.init(maxReports, maxCycles, attpid);
+                /*parseRepDB(initRepDB)*/ new ReputationDatabase(),
+                deviation, reportingInterval);
+        Observer.init(attpid);
 
         ArrayList<Integer> nodeKindness = new ArrayList<Integer>();    /*
         Lists that will contain values to be attributed        */
