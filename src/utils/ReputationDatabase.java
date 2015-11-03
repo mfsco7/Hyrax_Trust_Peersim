@@ -149,10 +149,11 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
         System.out.println("RepDB: " + rated + " geoMean " + geoMean);
         for (Integer rater : reputations[rated].keySet()) {
             int[] alphaBeta = reputations[rated].get(rater);
-            double alpha = (double) alphaBeta[0];
-            double beta = (double) alphaBeta[1];
-            double rep = (alpha + 1) / (alpha + beta + 2);
-            System.out.print("RepDB: " + rater + " " + rep);
+            int alpha = alphaBeta[0];
+            int beta = alphaBeta[1];
+            double rep = (alpha + 1d) / (alpha + beta + 2d);
+            System.out.print("RepDB: " + rater + "->" + rated + " " + alpha +
+                    " " + beta + " " + rep);
             if (Math.abs(rep - geoMean) > Infrastructure.getDeviation() *
                     geoMean) {
                 System.out.print(" outlier");

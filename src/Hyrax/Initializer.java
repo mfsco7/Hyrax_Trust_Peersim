@@ -35,6 +35,7 @@ public class Initializer implements Control {
     private static final String PAR_INIT_REP_DB = "initRepDB";
     private static final String PAR_INIT_REP_MAT = "initRepMatrices";
     private static final String PAR_DEVIATION = "deviation";
+    private static final String PAR_THRESHOLD = "threshold";
 
     /******************************
      * FIELDS            *
@@ -55,6 +56,7 @@ public class Initializer implements Control {
     private static String initRepDB;
     private static String initRepMatrices;
     private static float deviation;
+    private static int threshold;
 
     /******************************
      * Constructor         *
@@ -84,6 +86,7 @@ public class Initializer implements Control {
                 PAR_INIT_REP_MAT, "");
         deviation = Configuration.getInt(prefix + "." + PAR_DEVIATION, 20) /
                 100.0f;
+        threshold = Configuration.getInt(prefix + "." + PAR_THRESHOLD, 50);
     }
 
 
@@ -177,13 +180,13 @@ public class Initializer implements Control {
             int nodeKind = nodeKindness.get(i);
             atribs.setKindness(nodeKind);
 
-            if (nodeKind < 50 && nEvils > 0) {
+            if (nodeKind < threshold && nEvils > 0) {
                 atribs.setOverstater(true);
                 atribs.setMaxOverstates(rand.nextInt(higherEvilValue) + 1);
                 nEvils--;
             }
             //assign randomRaters
-            else if (nodeKind < 50 && nRandoms > 0) {
+            else if (nodeKind < threshold && nRandoms > 0) {
                 atribs.setRandomRater(true);
                 atribs.setRandomChance(rand.nextInt(101));
                 nRandoms--;
@@ -218,24 +221,25 @@ public class Initializer implements Control {
             //assign Evilness
             if (nEvils > 0) {
                 atribs.setOverstater(true);
-                atribs.setKindness(rand.nextInt(51));
+                atribs.setKindness(rand.nextInt(threshold + 1));
                 atribs.setMaxOverstates(rand.nextInt(higherEvilValue) + 1);
                 nEvils--;
             }
             //assign randomRaters
             else if (nRandoms > 0) {
                 atribs.setRandomRater(true);
-                atribs.setKindness(rand.nextInt(51));
+                atribs.setKindness(rand.nextInt(threshold + 1));
                 atribs.setRandomChance(rand.nextInt(101));
                 nRandoms--;
             }
             //assign Victims
             else if (nVictims > 0) {
                 atribs.setVictim(true);
-                atribs.setKindness(rand.nextInt(51) + 50);
+                atribs.setKindness(rand.nextInt(101 - threshold) +
+                        threshold);
                 nVictims--;
             } else {
-                atribs.setKindness(rand.nextInt(51) + 50);
+                atribs.setKindness(rand.nextInt(101 - threshold) + threshold);
             }
             if (nodeRepMatrices.containsKey(i)) {
                 atribs.setRepMatrix(nodeRepMatrices.get(i));
