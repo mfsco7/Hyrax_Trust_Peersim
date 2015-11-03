@@ -111,6 +111,7 @@ public class Initializer implements Control {
             Node n = Network.get(i);
             NodeAttributes atribs = (NodeAttributes) n.getProtocol(attpid);
             System.out.println("nodeID = " + n.getID());
+            System.out.println("nodeIndex = " + n.getIndex());
             System.out.println("kindness = " + atribs.getKindness());
             System.out.println("isEvil = " + atribs.isEvilOverstater());
             System.out.println("maxEvilness = " + atribs.getMaxOverstates());

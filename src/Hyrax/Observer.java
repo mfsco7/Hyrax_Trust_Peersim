@@ -35,7 +35,7 @@ public class Observer implements Control {
         for (int i = 0; i < Network.size(); i++) {
             Node n = Network.get(i);
             NodeAttributes atribs = (NodeAttributes) n.getProtocol(atribpid);
-            System.out.print("Node" + n.getID() + " is ");
+            System.out.print("Node" + n.getIndex() + " is ");
             if (atribs.isVictim()) {
                 System.out.print("Victim ");
             }
@@ -54,9 +54,9 @@ public class Observer implements Control {
 
             System.out.println("kindness = " + atribs.getKindness() + ", " +
                     "avg reputation = " + Infrastructure.askForAvgReputation(
-                    (int) n.getID()));
+                    (int) n.getIndex()));
             int[] credibility = Infrastructure.askForCredibility((int) n
-                    .getID());
+                    .getIndex());
             System.out.println("his ratings were accepted " +
                     credibility[0] + " times");
             System.out.println("his ratings were rejected " +

@@ -74,7 +74,7 @@ public class HyraxSimulation implements CDProtocol {
          *      overstater behavior    *
          ******************************/
         if (nAtrib.isEvilOverstater()) {
-            ArrayList<Integer> victimIDs = new ArrayList<Integer>();
+            ArrayList<Integer> victimIDs = new ArrayList<>();
             for (int i = 0; i < links.degree(); i++) {
                 //search for victims
                 Node neighbour = links.getNeighbor(i);
@@ -103,10 +103,11 @@ public class HyraxSimulation implements CDProtocol {
             while (numberOfOverstates > 0) {
                 int result = rand.nextInt(101);
                 if (result > victimAtribs.getKindness()) {
-                    nAtrib.getRepMatrix().addRating((int) victim.getID(),
+                    nAtrib.getRepMatrix().addRating((int) victim.getIndex(),
                             false);
                 } else {
-                    nAtrib.getRepMatrix().addRating((int) victim.getID(), true);
+                    nAtrib.getRepMatrix().addRating((int) victim.getIndex(),
+                            true);
                 }
                 numberOfOverstates--;
             }
@@ -120,9 +121,11 @@ public class HyraxSimulation implements CDProtocol {
             // node's own randomChance (lol this is so random)
             Node neighbor = links.getNeighbor(rand.nextInt(links.degree()));
             if (rand.nextInt(101) > nAtrib.getRandomChance()) {
-                nAtrib.getRepMatrix().addRating((int) neighbor.getID(), false);
+                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(),
+                        false);
             } else {
-                nAtrib.getRepMatrix().addRating((int) neighbor.getID(), true);
+                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(),
+                        true);
             }
         }
 
@@ -138,11 +141,11 @@ public class HyraxSimulation implements CDProtocol {
             if (rand.nextInt(101) > neighborAtribs.getKindness()) {
                 //interaction was a failure.
 
-                nAtrib.getRepMatrix().addRating((int) neighbor.getID(), false);
+                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(), false);
             } else {
                 //interaction was a success
 
-                nAtrib.getRepMatrix().addRating((int) neighbor.getID(), true);
+                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(), true);
             }
         }
 
@@ -151,22 +154,19 @@ public class HyraxSimulation implements CDProtocol {
          *     his matrix to the infrastructure        *
          **********************************************/
         if (Infrastructure.isTimeToReport()) {
-            Infrastructure.sendMatrix((int) n.getID(), nAtrib.getRepMatrix());
+            Infrastructure.sendMatrix((int) n.getIndex(), nAtrib.getRepMatrix());
             nAtrib.getRepMatrix().clear();
         }
     }
 
 
     public Object clone() {
-        HyraxSimulation theClone = null;
+        HyraxSimulation theClone;
         try {
             theClone = (HyraxSimulation) super.clone();
-        } catch (CloneNotSupportedException e) { //never happens
-            e.printStackTrace();
+        } catch (CloneNotSupportedException e) {
+            throw new Error("Cloning HyraxSimulation was not successful");
         }
         return theClone;
-
     }
-
-
 }
