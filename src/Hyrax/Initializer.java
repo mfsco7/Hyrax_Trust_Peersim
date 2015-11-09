@@ -121,8 +121,8 @@ public class Initializer implements Control {
             System.out.println("isVictim = " + atribs.isVictim());
             System.out.println("isRandomRater = " + atribs.isRandomRater());
             System.out.println("randomChance = " + atribs.getRandomChance());
-            System.out.println("Reputation =" + Infrastructure
-                    .askForAvgReputation(i));
+//            System.out.println("Reputation =" + Infrastructure
+//                    .askForAvgReputation(i));
             System.out.println(atribs.getRepMatrix().size());
             System.out.println
                     ("««««««««««««««««««««««««««««««««««««««««««««««««««");

@@ -103,10 +103,10 @@ public class HyraxSimulation implements CDProtocol {
             while (numberOfOverstates > 0) {
                 int result = rand.nextInt(101);
                 if (result > victimAtribs.getKindness()) {
-                    nAtrib.getRepMatrix().addRating((int) victim.getIndex(),
+                    nAtrib.getRepMatrix().addRating(victim.getIndex(),
                             false);
                 } else {
-                    nAtrib.getRepMatrix().addRating((int) victim.getIndex(),
+                    nAtrib.getRepMatrix().addRating(victim.getIndex(),
                             true);
                 }
                 numberOfOverstates--;
@@ -121,10 +121,10 @@ public class HyraxSimulation implements CDProtocol {
             // node's own randomChance (lol this is so random)
             Node neighbor = links.getNeighbor(rand.nextInt(links.degree()));
             if (rand.nextInt(101) > nAtrib.getRandomChance()) {
-                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(),
+                nAtrib.getRepMatrix().addRating(neighbor.getIndex(),
                         false);
             } else {
-                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(),
+                nAtrib.getRepMatrix().addRating(neighbor.getIndex(),
                         true);
             }
         }
@@ -141,11 +141,11 @@ public class HyraxSimulation implements CDProtocol {
             if (rand.nextInt(101) > neighborAtribs.getKindness()) {
                 //interaction was a failure.
 
-                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(), false);
+                nAtrib.getRepMatrix().addRating(neighbor.getIndex(), false);
             } else {
                 //interaction was a success
 
-                nAtrib.getRepMatrix().addRating((int) neighbor.getIndex(), true);
+                nAtrib.getRepMatrix().addRating(neighbor.getIndex(), true);
             }
         }
 
@@ -154,7 +154,7 @@ public class HyraxSimulation implements CDProtocol {
          *     his matrix to the infrastructure        *
          **********************************************/
         if (Infrastructure.isTimeToReport()) {
-            Infrastructure.sendMatrix((int) n.getIndex(), nAtrib.getRepMatrix());
+            Infrastructure.sendMatrix(n.getIndex(), nAtrib.getRepMatrix());
             nAtrib.getRepMatrix().clear();
         }
     }

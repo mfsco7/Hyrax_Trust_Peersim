@@ -1,8 +1,16 @@
 package utils;
 
-import Hyrax.Infrastructure;
+import Hyrax.HyraxSimulation;
+import Hyrax.NodeAttributes;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.math3.stat.descriptive.moment.GeometricMean;
 import peersim.core.Network;
+import peersim.util.MedianStats;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 
@@ -78,8 +86,8 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
             System.out.println("RepDB: " + rater + "->" + rated + " " +
                     rep);
         }
-        return (numReps == 0) ? "Not Rated" : (Double.toString
-                (reputationSum/numReps)) ;
+        return (numReps == 0) ? "Not Rated" : (Double.toString(reputationSum
+                / numReps));
     }
 
     public int[] getCredibility(int nodeID) {
@@ -122,6 +130,7 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
      * Fetch the ratings of each rater, computes their respective frequency
      * and then calculates the nth root of frequency, being n the number of
      * raters of that node
+     *
      * @param rated The node we want to now the Geometric Mean
      * @return Geometric Mean for rated node
      */
@@ -133,35 +142,115 @@ public void updateMatrix(int nodeID , ReputationMatrix mat){
         return Math.pow(freq, (1.0 / reputations[rated].size()));
     }
 
+    private double calcGeoMean2(int rated) {
+        double freq;
+        GeometricMean geometricMean = new GeometricMean();
+        for (int[] rating : reputations[rated].values()) {
+            freq = (rating[0] + 1.0) / (rating[0] + rating[1] + 2);
+            geometricMean.increment(freq);
+        }
+        return geometricMean.getResult();
+    }
+
     /**
      * Calculates the rated Geometric Mean and check the outlier raters by
      * comparing their frequency with a deviation parameter using the
      * formula: | rater_freq - geo_mean| > deviation * geo_mean. If previous
      * formula succeeds then rater is outlier and is not returned
+     *
      * @param rated The node which the filter will be applied
      * @return A pair of <rater,freq> that passed in this filter
      */
     private Hashtable<Integer, Double> unfairRatingFilter(int rated) {
 
-        double geoMean = calcGeoMean(rated);
+        //        double geoMean = calcGeoMean(rated);
+        //        double median = calcMedian(rated);
+
+        //        calcAvgDeviations(rated, geoMean, median);
         Hashtable<Integer, Double> goodReputations = new Hashtable<>();
 
-        System.out.println("RepDB: " + rated + " geoMean " + geoMean);
+        try {
+            CSVPrinter csv = new CSVPrinter(new FileWriter("HyraxConfig.csv",
+                    true), CSVFormat.DEFAULT);
+            csv.printRecord("node" + rated, ((NodeAttributes) Network.get
+                    (rated).getProtocol(HyraxSimulation.atributesID))
+                    .getKindness() + " kindness");
+
+            for (Integer rater : reputations[rated].keySet()) {
+                int[] alphaBeta = reputations[rated].get(rater);
+                int alpha = alphaBeta[0];
+                int beta = alphaBeta[1];
+
+                double rep = (alpha + 1d) / (alpha + beta + 2d);
+                csv.printRecord(rater + "->" + rated,rep);
+                //            if (Math.abs(rep - geoMean) >
+                // arithMeanDeviation) {
+                //            } else {
+                //            goodReputations.put(rater, rep);
+                //            }
+            }
+            csv.printRecord();
+            csv.flush();
+            csv.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return goodReputations;
+    }
+
+    private double calcArithMeanDeviations(HashMap<Integer, Double>
+                                                   deviations) {
+
+        double totalValue = 0;
+        for (double value : deviations.values()) {
+            totalValue += Math.abs(value);
+        }
+        return totalValue / deviations.size();
+    }
+
+    //    private double calcAvgDeviations(int rated, double geoMean, double
+    // median) {
+    //        IncrementalStats arithMeanDev = new IncrementalStats();
+    //        IncrementalStats arithMeanDev2 = new IncrementalStats();
+    //        GeometricMean geometricMean = new GeometricMean();
+    //        Median medianDev = new Median();
+    //        medianDev.evaluate();
+    //        ArrayList<Double> deviations = new ArrayList<>
+    // (reputations[rated].size());
+    //        ArrayList<Double> deviations2 = new ArrayList<>(reputations[rated]
+    //                .size());
+    //        for (Integer rater : reputations[rated].keySet()) {
+    //            int[] alphaBeta = reputations[rated].get(rater);
+    //            int alpha = alphaBeta[0];
+    //            int beta = alphaBeta[1];
+    //            double rep = (alpha + 1d) / (alpha + beta + 2d);
+    //            System.out.println("RepDB: " + Math.abs(rep - geoMean));
+    //            deviations.add(Math.abs(rep - geoMean));
+    //            deviations.add(Math.abs(rep - median));
+    //        }
+    //        Double[] devs = (Double[]) deviations.toArray();
+    //        Double[] devs2 = (Double[]) deviations2.toArray();
+    //
+    //        IncrementalStats stats = new IncrementalStats();
+    //        for (Double deviation : deviations.values()) {
+    //
+    //        }
+    //        if (typeOfAvgDev == 0) {
+    //
+    //        }
+    //    }
+
+    private double calcMedian(int rated) {
+        MedianStats stats = new MedianStats();
+
         for (Integer rater : reputations[rated].keySet()) {
             int[] alphaBeta = reputations[rated].get(rater);
             int alpha = alphaBeta[0];
             int beta = alphaBeta[1];
             double rep = (alpha + 1d) / (alpha + beta + 2d);
-            System.out.print("RepDB: " + rater + "->" + rated + " " + alpha +
-                    " " + beta + " " + rep);
-            if (Math.abs(rep - geoMean) > Infrastructure.getDeviation() *
-                    geoMean) {
-                System.out.print(" outlier");
-            } else {
-                goodReputations.put(rater, rep);
-            }
-            System.out.println();
+            stats.add(rep, 1);
         }
-        return goodReputations;
+
+        return (reputations.length > 0 ? 0 : stats.getMedian());
     }
 }
