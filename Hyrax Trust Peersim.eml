@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component inheritJdk="true">
+	<exclude-output/>
+	<contentEntry url="file://$MODULE_DIR$"/>
+	<contentEntry url="file:///home/valemore/Desktop/peersim-1.0.5/java-betaDistribution"/>
+	<levels>
+		<level name="commons-math3-3.5" value="project"/>
+		<level name="commons-csv" value="project"/>
+	</levels>
+</component>
