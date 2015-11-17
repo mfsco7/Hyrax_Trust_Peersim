@@ -1,6 +1,5 @@
 package Hyrax;
 
-import peersim.core.GeneralNode;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
@@ -20,7 +19,6 @@ public class EventSimulation implements EDProtocol {
         Node node2 = msg.getSender();
         switch (msg.getType()) {
             case GET_FILE:
-                GeneralNode
                 String fileName = ((GetFileMsg) msg).getFileName();
                 Message msg2 = new SendFileMsg(node, fileName);
                 EDSimulator.add(1000, msg2, node2, pid);

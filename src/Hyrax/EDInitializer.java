@@ -10,13 +10,16 @@ import peersim.edsim.EDSimulator;
 public class EDInitializer implements Control {
 
     private static final String PAR_PROTOCOL = "protocol";
+    private static final String PAR_NEIGHBOUR = "neighbour";
     private static final String PAR_SPAWN_TIME = "spawn";
 
     private final int pid;
+    private final int nid;
     private final int spawn;
 
     public EDInitializer(String prefix) {
         pid = Configuration.getPid(prefix + "." + PAR_PROTOCOL);
+        nid = Configuration.getPid(prefix + "." + PAR_NEIGHBOUR);
         spawn = Configuration.getInt(prefix + "." + PAR_SPAWN_TIME);
     }
 
@@ -25,15 +28,12 @@ public class EDInitializer implements Control {
         //        InfrastructureNode
         for (int i = 0; i < Network.size(); i++) {
             HyraxNode node = (HyraxNode) Network.get(i);
-            IdleProtocol ip = (IdleProtocol) node.getProtocol(0);
-            System.out.println(node.getProtocol(0));
+            IdleProtocol ip = (IdleProtocol) node.getProtocol(nid);
             Message msg = new GetFileMsg(node, "deprecated-list.html");
             for (int j = 0; j < ip.degree(); j++) {
                 Node neighbor = ip.getNeighbor(j);
-                System.out.println(neighbor.getID());
                 for (int time = 1000; time < CommonState.getEndTime(); time
                         += spawn) {
-                    System.out.println("mytime" + time);
                     EDSimulator.add(time, msg, neighbor, pid);
                     node.addInteraction(time, neighbor.getID(), 0, 0);
                 }
