@@ -21,7 +21,6 @@ package peersim.bittorrent;/*
  *
  */
 
-import Hyrax.HyraxNode;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
@@ -88,7 +87,7 @@ public class NodeInitializer{
 	 *	@param n The node to initialize
 	 */
 	public void initialize(Node n){
-		HyraxNode tracker = (HyraxNode) Network.get(0);
+		BitNode tracker = (BitNode) Network.get(0);
 		BitTorrent p;
 		p = (BitTorrent)n.getProtocol(pid);
 		p.setTracker(tracker);

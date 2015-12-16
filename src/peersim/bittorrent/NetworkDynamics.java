@@ -21,7 +21,6 @@ package peersim.bittorrent;/*
  *
  */
 
-import Hyrax.HyraxNode;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Control;
@@ -138,7 +137,7 @@ public class NetworkDynamics implements Control {
 		if (tracker.isUp()) {
 			for (int i = 0; i < n; ++i) {
 				// create a new node
-				HyraxNode nodeToBeAdded = (HyraxNode) Network.prototype.clone();
+				BitNode nodeToBeAdded = (BitNode) Network.prototype.clone();
 				
 				// add the new node to the network
 				Network.add(nodeToBeAdded); // questo nodo sara' in posizione Network.len -1

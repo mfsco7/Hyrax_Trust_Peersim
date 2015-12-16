@@ -1,5 +1,6 @@
-package Hyrax;
+package peersim.bittorrent;
 
+import peersim.config.Configuration;
 import peersim.core.GeneralNode;
 import peersim.core.Node;
 import peersim.util.IncrementalFreq;
@@ -10,7 +11,10 @@ import java.util.*;
 /**
  * Created by aferreira on 11-11-2015.
  */
-public class HyraxNode extends GeneralNode {
+public class BitNode extends GeneralNode {
+
+    private static final String PAR_PROT = "protocol";
+    private final int pid;
 
     private ArrayList<Interaction> interactions;
 
@@ -23,9 +27,32 @@ public class HyraxNode extends GeneralNode {
      *
      * @param prefix
      */
-    public HyraxNode(String prefix) {
+    public BitNode(String prefix) {
         super(prefix);
+        pid = Configuration.getPid(prefix + "." + PAR_PROT);
         interactions = new ArrayList<>();
+    }
+
+    private static HashMap<Long, Integer> sortByValues(HashMap<Long, Integer>
+                                                               map) {
+        List list = new LinkedList(map.entrySet());
+        // Defined Custom Comparator here
+        Collections.sort(list, new Comparator() {
+            public int compare(Object o1, Object o2) {
+                return ((Comparable) ((Map.Entry) (o1)).getValue()).compareTo
+                        (((Map.Entry) (o2)).getValue());
+            }
+        });
+
+        // Here I am copying the sorted list in HashMap
+        // using LinkedHashMap to preserve the insertion order
+        HashMap<Long, Integer> sortedHashMap = new LinkedHashMap<>();
+        for (Iterator it = list.iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            sortedHashMap.put((Long) entry.getKey(), (Integer) entry.getValue
+                    ());
+        }
+        return sortedHashMap;
     }
 
     public boolean addInteraction(long time, long nodeID, Integer result,
@@ -33,6 +60,12 @@ public class HyraxNode extends GeneralNode {
         Interaction interaction = new Interaction(time, nodeID, result, type);
         interactions.add(interaction);
         return true;
+    }
+
+    public boolean turnGoodInteraction(Long time, Long nodeID, Interaction
+            .TYPE type) {
+        Interaction interaction = getInteraction(time, nodeID, type);
+        return interaction != null && interaction.setResult(1);
     }
 
     public void printInteractions() {
@@ -122,53 +155,37 @@ public class HyraxNode extends GeneralNode {
         return count;
     }
 
-    public HashMap<Long, Long> getSortedInteractions(Interaction
-    .TYPE type) {
-
-        HashMap<Long, Long> sortedInteractions = new HashMap<>();
-//
-//        HyraxNode node = ((HyraxNode) (Network.get(i)));
-//        for (Neighbor neighbor : ((BitTorrent) (Network.get(i)
-//                .getProtocol(pid))).getCache()) {
-//            if (neighbor != null && neighbor.node != null) {
-//                node.printInteractions(neighbor.node.getID(),
-//                        Interaction.TYPE.DOWNLOAD);
-//                //                        neighbor.node
-//                // .printInteractions();
-//                //                        System.out.print(neighbor
-//                // .node.getID() + " ");
-//                node.printInteractions(neighbor.node.getID(),
-//                        Interaction.TYPE.UPLOAD);
-//            }
-//        }
-
-        return sortedInteractions;
-    }
-
-    public boolean turnGoodInteraction(Long time, Long nodeID, Interaction
-            .TYPE type) {
-        Interaction interaction = getInteraction(time, nodeID, type);
-        return interaction != null && interaction.setResult(1);
-    }
-
-
-    private static HashMap sortByValues(HashMap map) {
-        List list = new LinkedList(map.entrySet());
-        // Defined Custom Comparator here
-        Collections.sort(list, new Comparator() {
-            public int compare(Object o1, Object o2) {
-                return ((Comparable) ((Map.Entry) (o1)).getValue()).compareTo
-                        (((Map.Entry) (o2)).getValue());
+    public int getNumberInteractions(long nodeID, Interaction.TYPE type, int
+            result) {
+        int count = 0;
+        for (Interaction interaction : interactions) {
+            if (interaction.getNodeID() == nodeID && interaction.getType() ==
+                    type && interaction.getResult() == result) {
+                count++;
             }
-        });
-
-        // Here I am copying the sorted list in HashMap
-        // using LinkedHashMap to preserve the insertion order
-        HashMap sortedHashMap = new LinkedHashMap();
-        for (Iterator it = list.iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            sortedHashMap.put(entry.getKey(), entry.getValue());
         }
-        return sortedHashMap;
+        return count;
+    }
+
+    public HashMap<Long, Integer> getSortedInteractions(Interaction.TYPE type) {
+
+        HashMap<Long, Integer> sortedInteractions = new HashMap<>();
+
+        for (Neighbor neighbor : ((BitTorrent) (getProtocol(pid))).getCache()) {
+            if (neighbor != null && neighbor.node != null) {
+                sortedInteractions.put(neighbor.node.getID(),
+                        getNumberInteractions(neighbor.node.getID(), type, 1));
+            }
+        }
+        return sortByValues(sortedInteractions);
+    }
+
+    @Override
+    public Object clone() {
+        BitNode result;
+        result = (BitNode) super.clone();
+        result.interactions = new ArrayList<>();
+
+        return result;
     }
 }

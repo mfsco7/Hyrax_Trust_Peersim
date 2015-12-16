@@ -3,6 +3,7 @@ package Hyrax;
 import peersim.config.Configuration;
 import peersim.core.*;
 import peersim.edsim.EDSimulator;
+import utils.Interaction;
 
 /**
  * Created by aferreira on 09-11-2015.
@@ -35,7 +36,8 @@ public class EDInitializer implements Control {
                 for (int time = 1000; time < CommonState.getEndTime(); time
                         += spawn) {
                     EDSimulator.add(time, msg, neighbor, pid);
-                    node.addInteraction(time, neighbor.getID(), 0, 0);
+                    node.addInteraction(time, neighbor.getID(), 0,
+                            Interaction.TYPE.DOWNLOAD);
                 }
             }
         }

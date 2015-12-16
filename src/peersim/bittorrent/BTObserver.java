@@ -21,13 +21,15 @@ package peersim.bittorrent;/*
  *
  */
 
-import Hyrax.HyraxNode;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.util.IncrementalFreq;
 import peersim.util.IncrementalStats;
+import utils.Interaction;
+
+import java.util.Map;
 
 /**
  * This {@link Control} provides a way to keep track of some
@@ -134,7 +136,7 @@ public class BTObserver implements Control {
                 // .BitTorrent)(Network.get(i).getProtocol(pid)))
                 // .getThisNodeID());
                 //				System.out.println("OBS:");
-                //				((HyraxNode) Network.get(i))
+                //				((BitNode) Network.get(i))
                 // .printInteractions();
                 //                System.out.print("OBS: neighbors ");
                 //                for (Neighbor neighbor : ((BitTorrent)
@@ -148,19 +150,43 @@ public class BTObserver implements Control {
                 //                    }
                 //                }
                 //                System.out.println();
-                HyraxNode node = ((HyraxNode) (Network.get(i)));
-                for (Neighbor neighbor : ((BitTorrent) (Network.get(i)
-                        .getProtocol(pid))).getCache()) {
-                    if (neighbor != null && neighbor.node != null) {
-                        node.printInteractions(neighbor.node.getID(), 0);
-                        //                        neighbor.node
-                        // .printInteractions();
-                        //                        System.out.print(neighbor
-                        // .node.getID() + " ");
+                BitNode node = ((BitNode) (Network.get(i)));
+                //                for (Neighbor neighbor : ((BitTorrent)
+                // (Network.get(i)
+                //                        .getProtocol(pid))).getCache()) {
+                //                    if (neighbor != null && neighbor.node
+                // != null) {
+                //                        node.printInteractions(neighbor
+                // .node.getID(),
+                //                                Interaction.TYPE.DOWNLOAD);
+                //                        neighbor
+                //                 .node
+                // .printInteractions();
+                //                        System
+                //                 .out.print(neighbor
+                // .node.getID() + " ");
+                //                        node.printInteractions
+                // (neighbor
+                //                 .node.getID(),
+                //                                Interaction.TYPE
+                // .UPLOAD);
+
+                //                    }
+                //                }
+
+                if (node.getID() == 2) {
+                    for (Map.Entry<Long, Integer> entry : node
+                            .getSortedInteractions(Interaction.TYPE.DOWNLOAD)
+                            .entrySet()) {
+                        System.out.println(entry.getKey() + ":" + entry
+                                .getValue());
                     }
                 }
+
+
                 //                System.out.println();
-//                ((HyraxNode) (Network.get(i))).printInteractions();
+                //                ((BitNode) (Network.get(i)))
+                // .printInteractions();
             } else {
                 //System.out.println("[OBS] t " + CommonState.getTime() + "\t
                 // pc " + "0" + "\t n " + "0");
@@ -174,11 +200,11 @@ public class BTObserver implements Control {
         // prints the average number of neighbors per peer
         System.out.println("Avg number of neighbors per peer: " +
                 neighborStats.getAverage());
-        if (nodeStatusStats.getFreq(0) == 0) {
-            for (int i = 0; i < 9000; i++) {
-                System.out.println();
-            }
-        }
+        //        if (nodeStatusStats.getFreq(0) == 0) {
+        //            for (int, i = 0; i < 9000; i++) {
+        //                System.out.println();
+        //            }
+        //        }
         return false;
     }
 }

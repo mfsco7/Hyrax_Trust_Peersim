@@ -46,6 +46,13 @@ public class IntMsg extends SimpleMsg{
 		this.integer = value;
 	}
 
+	/**
+	 *	The basic constructor of the message.
+	 *	@param type the type of the message
+	 *	@param sender The sender node
+	 *	@param value The data value of the message
+	 *               @param time Time the message was generated
+	 */
 	public IntMsg(int type, Node sender, int value, long time){
 		super.type = type;
 		super.time = time;

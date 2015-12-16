@@ -21,7 +21,6 @@ package peersim.bittorrent;/*
  *
  */
 
-import Hyrax.HyraxNode;
 import peersim.config.Configuration;
 import peersim.core.Control;
 import peersim.core.Network;
@@ -80,7 +79,7 @@ public class NetworkInitializer implements Control {
 		for(int i=1; i<Network.size(); i++){
 			System.err.println("chiamate ad addNeighbor " + i);
 			((BitTorrent)Network.get(0).getProtocol(pid)).addNeighbor(
-					(HyraxNode) Network.get(i));
+					(BitNode) Network.get(i));
 			init.initialize(Network.get(i));
 		}
 		for(int i=1; i< Network.size(); i++){

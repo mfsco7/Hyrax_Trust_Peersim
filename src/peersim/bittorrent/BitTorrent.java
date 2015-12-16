@@ -21,7 +21,6 @@ package peersim.bittorrent;/*
  *
  */
 
-import Hyrax.HyraxNode;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Network;
@@ -29,6 +28,10 @@ import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
 import peersim.transport.Transport;
+import utils.Interaction;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is the class that implements the peersim.BitTorrent module
@@ -340,11 +343,10 @@ public class BitTorrent implements EDProtocol {
     private int nPieceCompleted = 0;
     /**
      * The status of the current piece in download. Length 16, every time the
-     * local node
-     * receives a PIECE message, it updates the corrisponding block's cell.
-     * The cell
-     * contains the ID for that block of that piece. If an already owned
-     * block is received this is discarded.
+     * local node receives a PIECE message, it updates the corrisponding
+     * block's cell.
+     * The cell contains the ID for that block of that piece. If an already
+     * owned block is received this is discarded.
      */
     private int pieceStatus[];
     /**
@@ -361,7 +363,7 @@ public class BitTorrent implements EDProtocol {
      * The reference to the tracker node. If equals to <tt>null</tt>, the local
      * node is the tracker.
      */
-    private HyraxNode tracker = null;
+    private BitNode tracker = null;
 
     /**
      * The default constructor. Reads the configuration file and initializes
@@ -392,7 +394,7 @@ public class BitTorrent implements EDProtocol {
      *
      * @return the reference to the tracker
      */
-    public HyraxNode getTracker() {
+    public BitNode getTracker() {
         return tracker;
     }
 
@@ -401,7 +403,7 @@ public class BitTorrent implements EDProtocol {
      *
      * @param t the tracker node
      */
-    public void setTracker(HyraxNode t) {
+    public void setTracker(BitNode t) {
         tracker = t;
     }
 
@@ -468,7 +470,7 @@ public class BitTorrent implements EDProtocol {
             Object ev;
             long latency;
             ev = new SimpleMsg(TRACKER, node);
-            HyraxNode tracker = ((BitTorrent) node.getProtocol(pid)).tracker;
+            BitNode tracker = ((BitTorrent) node.getProtocol(pid)).tracker;
             if (tracker != null) {
                 latency = ((Transport) node.getProtocol(tid)).getLatency
                         (node, tracker);
@@ -565,13 +567,22 @@ public class BitTorrent implements EDProtocol {
                                 swarm[senderIndex][decode(pendingRequest[i],
                                         0)] == 1) { //If the sender has that
                             // piece
-                            ev = new IntMsg(REQUEST, node, pendingRequest[i],
-                                    CommonState.getTime());
+                            HashMap<Long, Integer> downloadInteractions = (
+                                    (BitNode) node).getSortedInteractions
+                                    (Interaction.TYPE.DOWNLOAD);
+                            //                            ev = new IntMsg
+                            // (REQUEST, node, pendingRequest[i],
+                            //                                    CommonState
+                            // .getTime());
+                            ev = new RequestMsg(node, pendingRequest[i],
+                                    CommonState.getTime(),
+                                    downloadInteractions, null);
                             latency = ((Transport) node.getProtocol(tid))
                                     .getLatency(node, sender);
                             EDSimulator.add(latency, ev, sender, pid);
-                            ((HyraxNode) node).addInteraction(CommonState
-                                    .getTime(), sender.getID(), 0, 0);
+                            ((BitNode) node).addInteraction(CommonState
+                                    .getTime(), sender.getID(), 0,
+                                    Interaction.TYPE.DOWNLOAD);
                             cache[senderIndex].justSent();
                         }
                         if (!alive(cache[senderIndex].node)) {
@@ -624,14 +635,23 @@ public class BitTorrent implements EDProtocol {
                                     swarm[senderIndex][decode(block, 0)] == 1
                                     && addRequest(block)) { // The sender has
                                 // that block
-                                ev = new IntMsg(REQUEST, node, block,
-                                        CommonState.getTime());
+                                //                                ev = new
+                                // IntMsg(REQUEST, node, block,
+                                //
+                                // CommonState.getTime());
+                                HashMap<Long, Integer> downloadInteractions =
+                                        ((BitNode) node)
+                                                .getSortedInteractions
+                                                        (Interaction.TYPE
+                                                                .DOWNLOAD);
+                                ev = new RequestMsg(node, block, CommonState
+                                        .getTime(), downloadInteractions, null);
                                 latency = ((Transport) node.getProtocol(tid))
                                         .getLatency(node, sender);
                                 EDSimulator.add(latency, ev, sender, pid);
-                                ((HyraxNode) node).addInteraction(CommonState
-                                        .getTime() , sender.getID(),
-                                        0, 0);
+                                ((BitNode) node).addInteraction(CommonState
+                                        .getTime(), sender.getID(), 0,
+                                        Interaction.TYPE.DOWNLOAD);
                                 cache[senderIndex].justSent();
                             } else {
                                 if (!alive(cache[senderIndex].node)) {
@@ -744,8 +764,7 @@ public class BitTorrent implements EDProtocol {
             {
 
 
-                HyraxNode sender = (HyraxNode) ((BitfieldMsg) event)
-                        .getSender();
+                BitNode sender = (BitNode) ((BitfieldMsg) event).getSender();
                 int[] fileStatus = ((BitfieldMsg) event).getArray();
                 /*Response with NACK*/
                 if (!((BitfieldMsg) event).isRequest && !((BitfieldMsg)
@@ -775,7 +794,7 @@ public class BitTorrent implements EDProtocol {
                         cache[e.peer].justSent();
                     }
                 }
-				/*Response with ACK*/
+                /*Response with ACK*/
                 if (!((BitfieldMsg) event).isRequest && ((BitfieldMsg) event)
                         .ack) {
                     nBitfieldSent--;
@@ -824,7 +843,7 @@ public class BitTorrent implements EDProtocol {
                         System.out.println("Sender " + sender.getID() + " not" +
                                 " alive");
                 }
-				/*peersim.Request with ACK*/
+                /*peersim.Request with ACK*/
                 if (((BitfieldMsg) event).isRequest && ((BitfieldMsg) event)
                         .ack) {
                     //System.out.println("process, bitfield_req_ack: sender
@@ -908,7 +927,7 @@ public class BitTorrent implements EDProtocol {
             {
                 Object evnt;
                 //TODO instead always casting (IntMsg) cast only 1x
-                HyraxNode sender = (HyraxNode) ((IntMsg) event).getSender();
+                BitNode sender = (BitNode) ((IntMsg) event).getSender();
                 int value = ((IntMsg) event).getInt();
                 long requestTime = ((IntMsg) event).getTime();
                 Element e;
@@ -923,9 +942,17 @@ public class BitTorrent implements EDProtocol {
                 cache[e.peer].isAlive();
 
                 requestToServe.enqueue(value, sender);
-								
+
+                if (node.getID() == 1 && sender.getID() == 2) {
+                    for (Map.Entry<Long, Integer> entry : ((RequestMsg)
+                            event).getDownload().entrySet()) {
+                        System.out.println(entry.getKey() + ":" + entry
+                                .getValue());
+                    }
+                }
+
 				/*I serve the enqueued requests until 10 uploding pieces or an
-				 empty queue*/
+                 empty queue*/
                 while (!requestToServe.empty() && nPiecesUp < 10) {
                     Request req = requestToServe.dequeue();
                     e = search(req.sender.getID());
@@ -945,6 +972,12 @@ public class BitTorrent implements EDProtocol {
                                 .getLatency(node, req.sender);
                         EDSimulator.add(latency + downloadTime, ev, req
                                 .sender, pid);
+                        //TODO add upload interaction here
+                        //                        ((BitNode) node)
+                        // .addInteraction(CommonState.getTime
+                        //                                (), req.sender
+                        // .getID(), 1, Interaction.TYPE
+                        //                                .UPLOAD);
                         cache[e.peer].justSent();
 						/*I send to me an event to indicate that the download
 						is completed.
@@ -954,7 +987,7 @@ public class BitTorrent implements EDProtocol {
                         evnt = new SimpleMsg(DOWNLOAD_COMPLETED, req.sender);
                         EDSimulator.add(latency + downloadTime, evnt, node,
                                 pid);
-                        //                        ((HyraxNode) req.sender)
+                        //                        ((BitNode) req.sender)
                         // .addInteraction(latency +
                         //                                downloadTime, node
                         // .getID(), 0, 0);
@@ -966,7 +999,7 @@ public class BitTorrent implements EDProtocol {
 
             case PIECE: // 9, PIECE message.
             {
-                HyraxNode sender = (HyraxNode) ((IntMsg) event).getSender();
+                BitNode sender = (BitNode) ((IntMsg) event).getSender();
                 long requestTime = ((IntMsg) event).getTime();
                 /*	Set the correct value for the local uploading and remote
 				downloading number of pieces */
@@ -1022,19 +1055,20 @@ public class BitTorrent implements EDProtocol {
                 //                    System.out.println(getThisNodeID() +
                 // "/" + node.getID() +
                 //                            "->" + sender.getID());
-                //                    ((HyraxNode) node).addInteraction
+                //                    ((BitNode) node).addInteraction
                 // (CommonState.getTime(),
                 //                            sender.getID(), 1, 0);
-//                System.out.print("Trying to turn interaction to a good " +
-//                        "one...");
-//                if (
-                        ((HyraxNode) node).turnGoodInteraction(requestTime,
-                        sender.getID(), 0);
-//                        ) {
-//                    System.out.println("succeed");
-//                } else {
-//                    System.out.println("failed");
-//                }
+                //                System.out.print("Trying to turn
+                // interaction to a good " +
+                //                        "one...");
+                //                if (
+                ((BitNode) node).turnGoodInteraction(requestTime, sender
+                        .getID(), Interaction.TYPE.DOWNLOAD);
+                //                        ) {
+                //                    System.out.println("succeed");
+                //                } else {
+                //                    System.out.println("failed");
+                //                }
 
                 if (status[currentPiece] == 16) { // if piece completed, I
                     // change the currentPiece to the next wanted
@@ -1127,7 +1161,7 @@ public class BitTorrent implements EDProtocol {
 
             case PEERSET: // PEERSET message
             {
-                HyraxNode sender = (HyraxNode) ((PeerSetMsg) event).getSender();
+                BitNode sender = (BitNode) ((PeerSetMsg) event).getSender();
                 //System.out.println("process, peerset: sender is "+sender
                 // .getID()+", local is "+node.getID());
                 Neighbor n[] = ((PeerSetMsg) event).getPeerSet();
@@ -1155,7 +1189,7 @@ public class BitTorrent implements EDProtocol {
             {
 
                 int j = 0;
-                HyraxNode sender = (HyraxNode) ((SimpleMsg) event).getSender();
+                BitNode sender = (BitNode) ((SimpleMsg) event).getSender();
                 //System.out.println("process, tracker: sender is "+sender
                 // .getID()+", local is "+node.getID());
                 if (!alive(sender)) return;
@@ -1232,6 +1266,7 @@ public class BitTorrent implements EDProtocol {
                 } catch (NullPointerException e) { // If not enough peer in
                     // byBandwidth it chooses the other romdomly
                     for (int z = optimistic; z > 0; z--) {
+                        //TODO random arg cannot be 0
                         int lucky = CommonState.r.nextInt(nNodes);
                         while (cache[byPeer[lucky].peer].status == 1 && alive
                                 (cache[byPeer[lucky].peer].node) &&
@@ -1503,7 +1538,7 @@ public class BitTorrent implements EDProtocol {
      * no place is available.
      * Otherwise, returns true if the node is correctly added to the cache.
      */
-    public boolean addNeighbor(HyraxNode neighbor) {
+    public boolean addNeighbor(BitNode neighbor) {
         if (search(neighbor.getID()) != null) {// if already exists
             //	System.err.println("Node "+neighbor.getID() + " not added,
             // already exist.");
@@ -1654,12 +1689,19 @@ public class BitTorrent implements EDProtocol {
         while (block != -2) {
             if (unchokedBy[sender] == true && alive(cache[sender].node) &&
                     addRequest(block)) {
-                Object ev = new IntMsg(REQUEST, node, block, CommonState
-                        .getTime());
+                //                Object ev = new IntMsg(REQUEST, node,
+                // block, CommonState
+                //                        .getTime());
+                HashMap<Long, Integer> downloadInteractions = ((BitNode)
+                        node).getSortedInteractions(Interaction.TYPE.DOWNLOAD);
+                Object ev = new RequestMsg(node, block, CommonState.getTime()
+                        , downloadInteractions, null);
                 long latency = ((Transport) node.getProtocol(tid)).getLatency
                         (node, cache[sender].node);
                 EDSimulator.add(latency, ev, cache[sender].node, pid);
-                ((HyraxNode) node).addInteraction(CommonState.getTime(), cache[sender].node.getID(), 0, 0);
+                ((BitNode) node).addInteraction(CommonState.getTime(),
+                        cache[sender].node.getID(), 0, Interaction.TYPE
+                                .DOWNLOAD);
                 cache[sender].justSent();
             } else { // I cannot send request
                 if (!alive(cache[sender].node) && cache[sender].node != null) {
@@ -2102,7 +2144,7 @@ class Neighbor {
     /**
      * Reference to the node in the {@link Network}.
      */
-    public HyraxNode node = null;
+    public BitNode node = null;
     /**
      * -1 means not interested<br/>
      * Other values means the last piece number for which the node is
@@ -2175,7 +2217,7 @@ class Queue {
      * <tt>false</tt>
      * otherwise.
      */
-    public boolean enqueue(int id, HyraxNode sender) {
+    public boolean enqueue(int id, BitNode sender) {
         if (dim < maxSize) {
             queue[tail % maxSize].id = id;
             queue[tail % maxSize].sender = sender;
@@ -2265,5 +2307,5 @@ class Request {
     /**
      * The sender of the request.
      */
-    public HyraxNode sender;
+    public BitNode sender;
 }
