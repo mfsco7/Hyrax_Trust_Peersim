@@ -2,14 +2,14 @@ package peersim.bittorrent;
 
 import peersim.config.Configuration;
 import peersim.core.GeneralNode;
-import peersim.core.Node;
 import peersim.util.IncrementalFreq;
 import utils.Interaction;
 
 import java.util.*;
 
 /**
- * Created by aferreira on 11-11-2015.
+ * This class belongs to the package ${PACKAGE_NAME} and is for being use on
+ * Hyrax Trust Peersim.
  */
 public class BitNode extends GeneralNode {
 
@@ -17,16 +17,17 @@ public class BitNode extends GeneralNode {
     private final int pid;
 
     private ArrayList<Interaction> interactions;
+    private HashMap<Long, HashMap<Long, Integer>> nodeInteractions;
 
-    /**
-     * Used to construct the prototype node. This class currently does not
-     * have specific configuration parameters and so the parameter
-     * <code>prefix</code> is not used. It reads the protocol components
-     * (components that have type {@value Node#PAR_PROT}) from
-     * the configuration.
-     *
-     * @param prefix
-     */
+//    /**
+//     * Used to construct the prototype node. This class currently does not
+//     * have specific configuration parameters and so the parameter
+//     * <code>prefix</code> is not used. It reads the protocol components
+//     * (components that have type {@value Node#PAR_PROT}) from
+//     * the configuration.
+//     *
+//     * @param prefix
+//     */
     public BitNode(String prefix) {
         super(prefix);
         pid = Configuration.getPid(prefix + "." + PAR_PROT);
@@ -102,14 +103,13 @@ public class BitNode extends GeneralNode {
         freq.printAll(System.out);
     }
 
-    public Interaction getInteraction(Long time, Long nodeID, Interaction
+    public Interaction getInteraction(long time, long nodeID, Interaction
             .TYPE type) {
         for (Interaction interaction : interactions) {
-            //TODO remove casts
             if (interaction.getNodeID() == nodeID && interaction.getType() ==
                     type) {
 
-                if ((long) interaction.getTime() == time) {
+                if ( interaction.getTime() == time) {
                     return interaction;
                 }
             }
@@ -129,7 +129,7 @@ public class BitNode extends GeneralNode {
                 // interaction.getResult
                 //                        () +
                 //                        "," + interaction.getType() + ")");
-                freq.add((Integer) interaction.getResult());
+                freq.add(interaction.getResult());
             }
         }
 
@@ -187,5 +187,15 @@ public class BitNode extends GeneralNode {
         result.interactions = new ArrayList<>();
 
         return result;
+    }
+
+    /**
+     * Add the interactions receive by {@code nodeID}
+     * @param nodeID
+     * @param nodeInteractions
+     */
+    public void addNodeInteractions(long nodeID, HashMap<Long, Integer>
+            nodeInteractions) {
+        this.nodeInteractions.put(nodeID, nodeInteractions);
     }
 }

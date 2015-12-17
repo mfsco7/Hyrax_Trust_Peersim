@@ -314,8 +314,7 @@ public class BitTorrent implements EDProtocol {
     private boolean unchokedBy[];
     /**
      * Number of neighbors in the cache. When it decreases under 20, a new
-     * peerset
-     * is requested to the tracker.
+     * peerset is requested to the tracker.
      */
     private int nNodes = 0;
     /**
@@ -926,10 +925,10 @@ public class BitTorrent implements EDProtocol {
             case REQUEST: // 8, REQUEST message.
             {
                 Object evnt;
-                //TODO instead always casting (IntMsg) cast only 1x
-                BitNode sender = (BitNode) ((IntMsg) event).getSender();
-                int value = ((IntMsg) event).getInt();
-                long requestTime = ((IntMsg) event).getTime();
+                RequestMsg requestMsg = (RequestMsg) event;
+                BitNode sender = (BitNode) requestMsg.getSender();
+                int value = requestMsg.getInt();
+                long requestTime = requestMsg.getTime();
                 Element e;
                 BitTorrent senderP;
                 int remoteRate;
@@ -942,6 +941,9 @@ public class BitTorrent implements EDProtocol {
                 cache[e.peer].isAlive();
 
                 requestToServe.enqueue(value, sender);
+
+                ((BitNode) node).addNodeInteractions(sender.getID(),
+                        requestMsg.getDownload());
 
                 if (node.getID() == 1 && sender.getID() == 2) {
                     for (Map.Entry<Long, Integer> entry : ((RequestMsg)
@@ -1177,8 +1179,8 @@ public class BitTorrent implements EDProtocol {
                         EDSimulator.add(latency, ev, n[i].node, pid);
                         nBitfieldSent++;
                         // Here I should call the peersim.Neighbor
-                        // .justSent(), but here
-                        // the node is not yet in the cache.
+                        // .justSent(), but here the node is not yet in the
+                        // cache.
                     }
                 }
             }
@@ -1249,8 +1251,7 @@ public class BitTorrent implements EDProtocol {
                 }
 				
 				/*It ensures that in the next 20sec, if there are less nodes
-				interested
-					than now, those in surplus will not be ordered. */
+				interested than now, those in surplus will not be ordered. */
                 for (; j < swarmSize; j++) {
                     byBandwidth[j] = null;
                 }
@@ -1264,7 +1265,7 @@ public class BitTorrent implements EDProtocol {
                     optimistic--;
                     luckies[2] = byBandwidth[2].peer;
                 } catch (NullPointerException e) { // If not enough peer in
-                    // byBandwidth it chooses the other romdomly
+                    // byBandwidth it chooses the other randomly
                     for (int z = optimistic; z > 0; z--) {
                         //TODO random arg cannot be 0
                         int lucky = CommonState.r.nextInt(nNodes);
@@ -1306,7 +1307,7 @@ public class BitTorrent implements EDProtocol {
                 if (n_choke_time % 2 == 0) { //every 20 secs. Used in
                     // computing the average download rates
                     for (int i = 0; i < nNodes; i++) {
-                        if (this.peerStatus == 0) { // I'm a leeacher
+                        if (this.peerStatus == 0) { // I'm a leecher
                             byPeer[i].head20 = byPeer[i].valueDOWN;
                         } else {
                             byPeer[i].head20 = byPeer[i].valueUP;
@@ -1376,9 +1377,8 @@ public class BitTorrent implements EDProtocol {
                         cache[i].justSent();
                     }
 					/*If are at least 2 minutes (plus 1 sec of tolerance) that
-					 I don't
-					receive anything from it though I sent a keepalive 2
-					minutes ago*/
+					 I don't receive anything from it though I sent a
+					 keepalive 2 minutes ago*/
                     else {
                         if (cache[i].lastSeen < (now - 121000) && cache[i]
                                 .node != null && cache[i].lastSent < (now -
@@ -1795,16 +1795,14 @@ public class BitTorrent implements EDProtocol {
         // lastInterested piece
         if (i != 4 && decode(pendingRequest[i + 1], 0) == lastInterested)
             j = decode(pendingRequest[i + 1], 1) + 1; // the block following
-            // the last
-            // requested
+            // the last requested
         else // I don't know which is the next block, so I search it.
             j = 0;
 		/*	I search another block until the current has been already
 		received.
 			*	If in pieceStatus at position j there is a block that
-			*	belongs to
-			*	lastInterested piece, means that the block j has been already
-			*	received, otherwise I can request it.
+			*	belongs to lastInterested piece, means that the block j has
+			*	been already received, otherwise I can request it.
 			*/
         while (j < 16 && decode(pieceStatus[j], 0) == lastInterested) {
             j++;
@@ -1816,11 +1814,9 @@ public class BitTorrent implements EDProtocol {
 
     /**
      * Returns the next correct piece to download. It choose the piece by
-     * using the
-     * <i>random first</i> and <i>rarest first</i> policy. For the beginning
-     * 4 pieces
-     * of a file the first one is used then the pieces are chosen using
-     * <i>rarest first</i>.
+     * using the <i>random first</i> and <i>rarest first</i> policy. For the
+     * beginning 4 pieces of a file the first one is used then the pieces are
+     * chosen using <i>rarest first</i>.
      *
      * @return the next piece to download. If the whole file has been requested
      * -1 is returned.
@@ -1839,17 +1835,14 @@ public class BitTorrent implements EDProtocol {
             for (; j < nPieces; j++) { // I find the first not owned piece
                 if (status[j] == 0) {
                     piece = j;
-                    if (piece != lastInterested) // teoretically it works
-                        // because
-                        // there should be only one
-                        // interested
+                    if (piece != lastInterested) // theoretically it works
+                        // because there should be only one interested
                         // piece not yet downloaded
                         break;
                 }
             }
             if (piece == -1) { // Never entered in the previous 'if' statement;
-                // for all
-                // pieces an has been sent
+                // for all pieces an has been sent
                 return -1;
             }
 
@@ -1889,8 +1882,8 @@ public class BitTorrent implements EDProtocol {
 
     /**
      * Clone method of the class. Returns a deep copy of the peersim
-     * .BitTorrent class. Used
-     * by the simulation to initialize the {@link Network}
+     * .BitTorrent class. Used by the simulation to initialize the
+     * {@link Network}
      *
      * @return the deep copy of the peersim.BitTorrent class.
      */
@@ -1933,8 +1926,7 @@ public class BitTorrent implements EDProtocol {
 
     /**
      * Sorts {@link #byPeer} array by peer's ID. It implements the
-     * <i>InsertionSort</i>
-     * algorithm.
+     * <i>InsertionSort</i> algorithm.
      */
     public void sortByPeer() {
         int i;
@@ -1978,8 +1970,8 @@ public class BitTorrent implements EDProtocol {
 
     /**
      * Used by {@link #quicksort(int, int)}, partitions the subarray to sort
-     * returning
-     * the splitting point as stated by the <i>QuickSort</i> algorithm.
+     * returning the splitting point as stated by the <i>QuickSort</i>
+     * algorithm.
      *
      * @see "The <i>QuickSort</i> algorithm".
      */
@@ -2003,11 +1995,9 @@ public class BitTorrent implements EDProtocol {
 
     /**
      * Aswers to the question "is x > y?". Compares the {@link Element}s
-     * given as
-     * parameters. <tt>peersim.Element x</tt> is greater than <tt>y</tt> if
-     * isn't <tt>null</tt>
-     * and in the last 20 seconds the local node has downloaded ("uploaded"
-     * if the local node is a
+     * given as parameters. <tt>peersim.Element x</tt> is greater than
+     * <tt>y</tt> if isn't <tt>null</tt> and in the last 20 seconds the local
+     * node has downloaded ("uploaded" if the local node is a
      * seeder) more blocks than from <tt>y</tt>.
      *
      * @param x the first <tt>peersim.Element</tt> to compare.
@@ -2137,8 +2127,8 @@ class Element {
 
 /**
  * This class stores information about the neighbors regarding their status.
- * It is
- * the type of the items in the {@link peersim.bittorrent.BitTorrent#cache}.
+ * It is the type of the items in the
+ * {@link peersim.bittorrent.BitTorrent#cache}.
  */
 class Neighbor {
     /**
@@ -2146,9 +2136,8 @@ class Neighbor {
      */
     public BitNode node = null;
     /**
-     * -1 means not interested<br/>
-     * Other values means the last piece number for which the node is
-     * interested.
+     * -1 means not interested<br/> Other values means the last piece number
+     * for which the node is interested.
      */
     public int interested;
     /**
@@ -2176,7 +2165,7 @@ class Neighbor {
         this.lastSeen = now;
     }
 
-    /*
+    /**
      * Sets the last time the local peer sent something to the neighbor.
      */
     public void justSent() {
